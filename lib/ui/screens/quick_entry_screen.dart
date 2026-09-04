@@ -223,14 +223,8 @@ class _QuickEntryScreenState extends ConsumerState<QuickEntryScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    _DateChip(date: _date, onPick: _pickDate),
                     _AmountDisplay(amount: _amount),
-                    _MetaRow(
-                      date: _date,
-                      onPickDate: _pickDate,
-                      wallets: walletRows ?? const [],
-                      selectedWalletId: _walletId,
-                      onWalletSelected: (id) => setState(() => _walletId = id),
-                    ),
                     const SizedBox(height: 8),
                     categories.when(
                       loading: () => const SizedBox(height: 82),
@@ -286,6 +280,12 @@ class _QuickEntryScreenState extends ConsumerState<QuickEntryScreen> {
                       ),
                     ],
                     const SizedBox(height: 12),
+                    _WalletChips(
+                      wallets: walletRows ?? const [],
+                      selectedId: _walletId,
+                      onSelected: (id) => setState(() => _walletId = id),
+                    ),
+                    const SizedBox(height: 8),
                   ],
                 ),
               ),
@@ -338,7 +338,7 @@ class _AmountDisplay extends StatelessWidget {
     final isEmpty = amount == 0;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
       child: FittedBox(
         fit: BoxFit.scaleDown,
         alignment: Alignment.centerLeft,
@@ -357,45 +357,75 @@ class _AmountDisplay extends StatelessWidget {
   }
 }
 
-class _MetaRow extends StatelessWidget {
-  const _MetaRow({
-    required this.date,
-    required this.onPickDate,
-    required this.wallets,
-    required this.selectedWalletId,
-    required this.onWalletSelected,
-  });
+/// Tanggal, di atas nominal.
+///
+/// Tanggal menentukan arti angka di bawahnya — "Rp 50.000" hari ini dan
+/// "Rp 50.000" minggu lalu masuk ke periode budget yang berbeda — jadi
+/// dibaca lebih dulu. Hampir selalu sudah benar di "Hari ini", jadi
+/// menaruhnya di atas tidak menambah satu ketukan pun.
+class _DateChip extends StatelessWidget {
+  const _DateChip({required this.date, required this.onPick});
 
   final DateTime date;
-  final VoidCallback onPickDate;
-  final List<Wallet> wallets;
-  final String? selectedWalletId;
-  final ValueChanged<String> onWalletSelected;
+  final VoidCallback onPick;
 
   @override
   Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+        child: ActionChip(
+          avatar: const Icon(Icons.event, size: 18),
+          label: Text(formatRelativeDate(date)),
+          onPressed: onPick,
+        ),
+      ),
+    );
+  }
+}
+
+/// Pemilih dompet, di paling bawah.
+///
+/// Ditaruh terakhir karena paling jarang disentuh: dompet pertama sudah
+/// terpilih otomatis, dan sebagian besar orang cuma punya satu yang
+/// aktif. Menaruhnya di jalur utama hanya memanjangkan layar yang harus
+/// dilewati untuk sampai ke tombol simpan.
+class _WalletChips extends StatelessWidget {
+  const _WalletChips({
+    required this.wallets,
+    required this.selectedId,
+    required this.onSelected,
+  });
+
+  final List<Wallet> wallets;
+  final String? selectedId;
+  final ValueChanged<String> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    // Satu dompet saja tidak perlu dipilih. Menampilkan satu chip yang
+    // selalu terpilih hanya menambah baris tanpa memberi pilihan.
+    if (wallets.length < 2) return const SizedBox.shrink();
+
     return SizedBox(
       height: 40,
       child: ListView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
         children: [
-          ActionChip(
-            avatar: const Icon(Icons.event, size: 18),
-            label: Text(formatRelativeDate(date)),
-            onPressed: onPickDate,
-          ),
           for (final wallet in wallets) ...[
-            const SizedBox(width: 8),
             ChoiceChip(
               avatar: Icon(walletIcon(wallet.type.name), size: 18),
               label: Text(wallet.name),
-              selected: wallet.id == selectedWalletId,
-              onSelected: (_) => onWalletSelected(wallet.id),
+              selected: wallet.id == selectedId,
+              onSelected: (_) => onSelected(wallet.id),
             ),
+            const SizedBox(width: 8),
           ],
         ],
       ),
     );
   }
 }
+
