@@ -114,6 +114,66 @@ dipakai.
 
 ---
 
+### 6. Membaca struk tanpa API — ML Kit dan aturan sendiri
+
+**Nilai: sedang · Biaya: 1–2 minggu · Risiko: sedang**
+
+Alternatif kalau tidak mau bergantung pada kunci API Gemini, atau kalau
+foto struk tidak boleh keluar dari HP sama sekali.
+
+`google_mlkit_text_recognition` berjalan di perangkat, gratis, tanpa
+internet, tanpa kunci. Yang diberikannya cuma teks mentah beserta kotak
+posisinya — mengubah itu jadi item dan nominal adalah pekerjaan sendiri.
+
+Struk Indonesia lebih teratur daripada kelihatannya: nominal rata kanan
+dengan pemisah titik, dan kata kuncinya berulang — `PPN`, `PB1`, `Pajak`,
+`Subtotal`, `Total`, `Tunai`, `Kembali`. Kotak posisi dipakai untuk
+memasangkan nama item di kiri dengan harganya di kanan.
+
+Kelemahannya rapi di awal lalu menua: setiap format struk baru butuh
+aturan baru, dan ekornya tidak pernah habis.
+
+> **Gabungan yang paling masuk akal:** ML Kit membaca teksnya di HP, lalu
+> hanya **teksnya** yang dikirim ke model bahasa — bukan fotonya. Jauh
+> lebih murah, bisa dipakai penyedia mana pun, dan yang keluar dari HP
+> jadi jauh lebih sedikit.
+
+---
+
+## Dinilai dan ditolak
+
+### Melatih model pembaca struk sendiri
+
+**Nilai: rendah · Biaya: 1–3 bulan · Risiko: tinggi**
+
+Terdengar seperti jawaban yang benar. Setelah dihitung, tidak.
+
+Membaca huruf dari gambar sudah selesai dipecahkan orang lain — bagian
+itu tidak perlu dilatih sama sekali. Yang sulit adalah mengubah teks jadi
+`{merchant, item, harga, pajak, total}`.
+
+Untuk itu keluarganya sudah ada: LayoutLMv3, Donut, LiLT. Datanya pun
+kebetulan berpihak — **CORD, kumpulan data struk standar, isinya struk
+Indonesia**, sekitar seribu lembar beranotasi dan terbuka untuk umum.
+
+Yang membunuhnya adalah tiga hal:
+
+| Hambatan | Kenyataannya |
+|---|---|
+| Pelabelan | 2–5 menit per struk. 300 struk berarti 15–25 jam, **setelah** mengumpulkan 300 struknya dulu — berbulan-bulan makan di luar |
+| Penyebaran | LayoutLM sekitar 500 MB. Mengubahnya ke TFLite jarang mulus, jadi ujungnya tetap butuh server — persis yang mau dihindari dengan tidak memakai API |
+| Ketepatan | Gemini membaca struk kusut dan gelap tanpa dilatih. Model kecil hasil latihan sendiri bagus di format yang pernah dilihat, lalu jatuh di format baru |
+
+Latihannya sendiri justru bagian termurah: Colab gratis, beberapa jam.
+
+Ambangnya kejam. Ketepatan 85% terdengar lumayan sampai disadari artinya
+15% struk membawa angka salah ke catatan keuangan seseorang.
+
+Bangun ini hanya kalau Chacing jadi produk dengan banyak pengguna, bukan
+aplikasi untuk dipakai sendiri.
+
+---
+
 ## Ditunda dengan sengaja
 
 ### Sync antar perangkat
