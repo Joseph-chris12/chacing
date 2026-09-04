@@ -8,6 +8,7 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:chacing/data/database.dart';
+import 'package:chacing/ui/category_colors.dart';
 import 'package:chacing/ui/category_icons.dart';
 
 class CategoryPicker extends StatelessWidget {
@@ -66,12 +67,19 @@ class _CategoryChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final color = categoryColor(
+      stored: category.colorValue,
+      seed: category.id,
+      brightness: theme.brightness,
+    );
+
+    // Warna kategori dipakai sebagai isian tipis saat terpilih, bukan
+    // sebagai blok penuh: chip berwarna pekat berjajar tujuh akan
+    // menenggelamkan nominal yang justru jadi fokus layar ini.
     final background = selected
-        ? theme.colorScheme.primaryContainer
+        ? color.withValues(alpha: 0.18)
         : theme.colorScheme.surfaceContainerHighest;
-    final foreground = selected
-        ? theme.colorScheme.onPrimaryContainer
-        : theme.colorScheme.onSurfaceVariant;
+    final foreground = selected ? color : theme.colorScheme.onSurfaceVariant;
 
     return Semantics(
       selected: selected,
@@ -89,7 +97,7 @@ class _CategoryChip extends StatelessWidget {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: selected ? theme.colorScheme.primary : Colors.transparent,
+                color: selected ? color : Colors.transparent,
                 width: 2,
               ),
             ),

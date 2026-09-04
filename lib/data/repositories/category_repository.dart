@@ -36,7 +36,11 @@ class CategoryRepository {
         .getSingleOrNull();
   }
 
-  Future<String> create({required String name, String? icon}) async {
+  Future<String> create({
+    required String name,
+    String? icon,
+    int? colorValue,
+  }) async {
     final now = DateTime.now();
     final id = _uuid.v4();
 
@@ -45,6 +49,7 @@ class CategoryRepository {
             id: id,
             name: name,
             icon: Value(icon),
+            colorValue: Value(colorValue),
             createdAt: now,
             updatedAt: now,
           ),
@@ -58,14 +63,21 @@ class CategoryRepository {
   /// Kategori bawaan ikut boleh diubah — yang dilarang hanya menghapusnya.
   /// Nama "Makan" mungkin tidak cocok untuk semua orang, dan memaksa
   /// mereka membuat kategori kembar hanya menambah kekacauan.
-  Future<void> update(String id, {String? name, String? icon}) async {
-    if (name == null && icon == null) return;
+  Future<void> update(
+    String id, {
+    String? name,
+    String? icon,
+    int? colorValue,
+  }) async {
+    if (name == null && icon == null && colorValue == null) return;
 
     final now = DateTime.now();
     await (_db.update(_db.categories)..where((c) => c.id.equals(id))).write(
       CategoriesCompanion(
         name: name == null ? const Value.absent() : Value(name),
         icon: icon == null ? const Value.absent() : Value(icon),
+        colorValue:
+            colorValue == null ? const Value.absent() : Value(colorValue),
         updatedAt: Value(now),
         isDirty: const Value(true),
       ),

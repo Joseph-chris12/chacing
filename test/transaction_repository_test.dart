@@ -70,6 +70,39 @@ void main() {
       expect((await db.select(db.people).get()).single.isSelf, isTrue);
     });
 
+    test('kategori bawaan punya warna sendiri-sendiri', () async {
+      final rows = await db.select(db.categories).get();
+      final colors = rows.map((c) => c.colorValue).toList();
+
+      // Semua terisi, dan tidak ada dua kategori berwarna sama — grafik
+      // dengan dua batang sewarna tidak bisa dibaca.
+      expect(colors.any((c) => c == null), isFalse);
+      expect(colors.toSet().length, rows.length);
+    });
+
+    test('warna kosong diisi ulang tanpa menimpa pilihan pengguna', () async {
+      final makan = (await db.select(db.categories).get())
+          .firstWhere((c) => c.name == 'Makan');
+
+      // Satu kategori dikosongkan warnanya seperti pemasangan lama,
+      // satu lagi diberi warna pilihan sendiri.
+      await (db.update(db.categories)..where((c) => c.id.equals(makan.id)))
+          .write(const CategoriesCompanion(colorValue: Value(null)));
+      final transport = (await db.select(db.categories).get())
+          .firstWhere((c) => c.name == 'Transport');
+      await (db.update(db.categories)..where((c) => c.id.equals(transport.id)))
+          .write(const CategoriesCompanion(colorValue: Value(0xFF123456)));
+
+      await DatabaseSeeder(db).run();
+
+      final after = await db.select(db.categories).get();
+      expect(after.firstWhere((c) => c.name == 'Makan').colorValue, isNotNull);
+      expect(
+        after.firstWhere((c) => c.name == 'Transport').colorValue,
+        0xFF123456,
+      );
+    });
+
     test('dijalankan dua kali tidak menggandakan apa pun', () async {
       await DatabaseSeeder(db).run();
 

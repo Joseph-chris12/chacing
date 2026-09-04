@@ -11,16 +11,22 @@ import 'package:uuid/uuid.dart';
 import 'package:chacing/data/database.dart';
 
 /// Kategori bawaan. Ditandai `isSystem` supaya tidak bisa dihapus —
-/// pengguna boleh mengganti nama dan ikonnya, tapi kategori yang hilang
-/// akan membuat transaksi lama kehilangan pengelompokan.
-const _defaultCategories = <({String name, String icon})>[
-  (name: 'Makan', icon: 'restaurant'),
-  (name: 'Transport', icon: 'directions_bus'),
-  (name: 'Belanja', icon: 'shopping_bag'),
-  (name: 'Tagihan', icon: 'receipt_long'),
-  (name: 'Hiburan', icon: 'movie'),
-  (name: 'Kesehatan', icon: 'medical_services'),
-  (name: 'Lainnya', icon: 'more_horiz'),
+/// pengguna boleh mengganti nama, ikon, dan warnanya, tapi kategori yang
+/// hilang akan membuat transaksi lama kehilangan pengelompokan.
+///
+/// Warnanya ditulis sebagai ARGB mentah, bukan diambil dari palet di
+/// `ui/category_colors.dart`. Lapisan data tidak boleh bergantung pada
+/// lapisan tampilan; nilainya memang sengaja disamakan dengan palet itu.
+/// Urutannya dijarakkan supaya dua kategori bersebelahan tidak berwarna
+/// mirip — itu yang paling sering membuat grafik sulit dibaca.
+const _defaultCategories = <({String name, String icon, int color})>[
+  (name: 'Makan', icon: 'restaurant', color: 0xFFEA580C),
+  (name: 'Transport', icon: 'directions_bus', color: 0xFF0284C7),
+  (name: 'Belanja', icon: 'shopping_bag', color: 0xFF9333EA),
+  (name: 'Tagihan', icon: 'receipt_long', color: 0xFF0D9488),
+  (name: 'Hiburan', icon: 'movie', color: 0xFFDB2777),
+  (name: 'Kesehatan', icon: 'medical_services', color: 0xFF16A34A),
+  (name: 'Lainnya', icon: 'more_horiz', color: 0xFF78716C),
 ];
 
 class DatabaseSeeder {
@@ -33,6 +39,7 @@ class DatabaseSeeder {
   Future<void> run() async {
     await _db.transaction(() async {
       await _seedCategories();
+      await _backfillCategoryColors();
       await _seedCashWallet();
       await _seedSelf();
     });
@@ -55,11 +62,40 @@ class DatabaseSeeder {
               id: _uuid.v4(),
               name: category.name,
               icon: Value(category.icon),
+              colorValue: Value(category.color),
               isSystem: const Value(true),
               createdAt: stamp,
               updatedAt: stamp,
             ),
           );
+    }
+  }
+
+  /// Mengisi warna kategori bawaan yang sudah terlanjur dibuat tanpa warna.
+  ///
+  /// Kolom `colorValue` sudah ada di tabel sejak awal tapi baru dipakai
+  /// belakangan, jadi pemasangan yang lebih tua punya kategori bawaan
+  /// dengan warna kosong. Tanpa langkah ini, warna yang sudah dipilihkan
+  /// hanya terlihat oleh orang yang memasang aplikasi dari nol.
+  ///
+  /// Hanya menyentuh baris yang warnanya masih kosong, jadi pilihan
+  /// pengguna tidak pernah tertimpa.
+  Future<void> _backfillCategoryColors() async {
+    final rows = await (_db.select(_db.categories)
+          ..where((c) => c.colorValue.isNull()))
+        .get();
+    if (rows.isEmpty) return;
+
+    final byName = {
+      for (final category in _defaultCategories) category.name: category.color,
+    };
+
+    for (final row in rows) {
+      final color = byName[row.name];
+      if (color == null) continue;
+
+      await (_db.update(_db.categories)..where((c) => c.id.equals(row.id)))
+          .write(CategoriesCompanion(colorValue: Value(color)));
     }
   }
 

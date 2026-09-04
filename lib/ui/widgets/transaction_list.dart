@@ -10,6 +10,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 
 import 'package:chacing/data/database.dart';
 import 'package:chacing/domain/daily_group.dart';
+import 'package:chacing/ui/category_colors.dart';
 import 'package:chacing/ui/category_icons.dart';
 import 'package:chacing/ui/format.dart';
 
@@ -146,10 +147,19 @@ class _TransactionTile extends StatelessWidget {
       ),
       child: ListTile(
         onTap: onEdit,
-        leading: CircleAvatar(
-          backgroundColor: theme.colorScheme.surfaceContainerHighest,
-          foregroundColor: theme.colorScheme.onSurfaceVariant,
-          child: Icon(categoryIcon(category?.icon), size: 20),
+        leading: Builder(
+          builder: (context) {
+            final color = categoryColor(
+              stored: category?.colorValue,
+              seed: category?.id ?? 'tanpa-kategori',
+              brightness: theme.brightness,
+            );
+            return CircleAvatar(
+              backgroundColor: color.withValues(alpha: 0.16),
+              foregroundColor: color,
+              child: Icon(categoryIcon(category?.icon), size: 20),
+            );
+          },
         ),
         title: Text(
           transaction.merchant,

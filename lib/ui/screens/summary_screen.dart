@@ -11,6 +11,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:chacing/data/database.dart';
 import 'package:chacing/data/repositories/transaction_repository.dart';
 import 'package:chacing/providers.dart';
+import 'package:chacing/ui/category_colors.dart';
 import 'package:chacing/ui/category_icons.dart';
 import 'package:chacing/ui/format.dart';
 import 'package:chacing/ui/widgets/period_navigator.dart';
@@ -76,9 +77,7 @@ class _CategoryBars extends StatelessWidget {
     // Skala batang memakai kategori terbesar, bukan total. Kalau memakai
     // total, semua batang jadi pendek dan perbandingannya justru hilang.
     final largest = rows.first.total;
-    final iconByCategoryId = {
-      for (final category in categories) category.id: category.icon,
-    };
+    final byId = {for (final category in categories) category.id: category};
 
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
@@ -87,10 +86,18 @@ class _CategoryBars extends StatelessWidget {
         if (index == 0) return _TotalHeader(total: total);
 
         final row = rows[index - 1];
+        final category = byId[row.categoryId];
+
         return _CategoryBar(
           name: row.categoryName,
           amount: row.total,
-          icon: categoryIcon(iconByCategoryId[row.categoryId]),
+          icon: categoryIcon(category?.icon),
+          color: categoryColor(
+            stored: category?.colorValue,
+            // Transaksi tanpa kategori tetap butuh warna yang tetap.
+            seed: category?.id ?? 'tanpa-kategori',
+            brightness: Theme.of(context).brightness,
+          ),
           fraction: largest == 0 ? 0 : row.total / largest,
           share: total == 0 ? 0 : row.total / total,
         );
@@ -132,6 +139,7 @@ class _CategoryBar extends StatelessWidget {
     required this.name,
     required this.amount,
     required this.icon,
+    required this.color,
     required this.fraction,
     required this.share,
   });
@@ -139,6 +147,9 @@ class _CategoryBar extends StatelessWidget {
   final String name;
   final int amount;
   final IconData icon;
+
+  /// Warna kategori, dipilih pengguna di layar Kategori.
+  final Color color;
 
   /// Panjang batang relatif terhadap kategori terbesar.
   final double fraction;
@@ -157,7 +168,7 @@ class _CategoryBar extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, size: 18, color: theme.colorScheme.onSurfaceVariant),
+              Icon(icon, size: 18, color: color),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -183,8 +194,7 @@ class _CategoryBar extends StatelessWidget {
                     value: fraction.clamp(0.0, 1.0),
                     minHeight: 10,
                     backgroundColor: theme.colorScheme.surfaceContainerHighest,
-                    valueColor:
-                        AlwaysStoppedAnimation(theme.colorScheme.primary),
+                    valueColor: AlwaysStoppedAnimation(color),
                   ),
                 ),
               ),
