@@ -12,6 +12,7 @@ import 'package:chacing/data/connection.dart';
 import 'package:chacing/data/database.dart';
 import 'package:chacing/data/repositories/budget_repository.dart';
 import 'package:chacing/data/repositories/category_repository.dart';
+import 'package:chacing/data/repositories/person_repository.dart';
 import 'package:chacing/data/repositories/transaction_repository.dart';
 import 'package:chacing/data/repositories/wallet_repository.dart';
 import 'package:chacing/domain/budget_period.dart';
@@ -221,4 +222,24 @@ final searchResultsProvider = StreamProvider<List<Transaction>>((ref) {
         categoryId: ref.watch(searchCategoryProvider),
         walletId: ref.watch(searchWalletProvider),
       );
+});
+
+// -------------------------------------------------------------------- orang
+
+final personRepositoryProvider = Provider<PersonRepository>(
+  (ref) => PersonRepository(ref.watch(databaseProvider)),
+);
+
+/// Semua orang yang bisa diajak bagi tagihan, diri sendiri lebih dulu.
+final peopleProvider = StreamProvider<List<Person>>(
+  (ref) => ref.watch(personRepositoryProvider).watchAll(),
+);
+
+/// Baris yang mewakili pemilik aplikasi.
+final selfPersonProvider = Provider<Person?>((ref) {
+  final people = ref.watch(peopleProvider).value ?? const <Person>[];
+  for (final person in people) {
+    if (person.isSelf) return person;
+  }
+  return null;
 });

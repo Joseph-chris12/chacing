@@ -21,8 +21,10 @@ import 'package:chacing/providers.dart';
 import 'package:chacing/ui/screens/backup_screen.dart';
 import 'package:chacing/ui/screens/budget_settings_screen.dart';
 import 'package:chacing/ui/screens/categories_screen.dart';
+import 'package:chacing/ui/screens/people_screen.dart';
 import 'package:chacing/ui/screens/quick_entry_screen.dart';
 import 'package:chacing/ui/screens/search_screen.dart';
+import 'package:chacing/ui/screens/split_bill_screen.dart';
 import 'package:chacing/ui/screens/summary_screen.dart';
 import 'package:chacing/ui/screens/wallets_screen.dart';
 import 'package:chacing/ui/widgets/budget_summary.dart';
@@ -139,6 +141,15 @@ class HomeScreen extends ConsumerWidget {
             onSelected: (item) => _openMenuItem(context, item),
             itemBuilder: (_) => const [
               PopupMenuItem(
+                value: _HomeMenu.split,
+                child: ListTile(
+                  leading: Icon(Icons.groups_outlined),
+                  title: Text('Bagi tagihan'),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              PopupMenuDivider(),
+              PopupMenuItem(
                 value: _HomeMenu.budget,
                 child: ListTile(
                   leading: Icon(Icons.flag_outlined),
@@ -159,6 +170,14 @@ class HomeScreen extends ConsumerWidget {
                 child: ListTile(
                   leading: Icon(Icons.label_outline),
                   title: Text('Kategori'),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              PopupMenuItem(
+                value: _HomeMenu.people,
+                child: ListTile(
+                  leading: Icon(Icons.people_outline),
+                  title: Text('Orang'),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
@@ -195,14 +214,16 @@ class HomeScreen extends ConsumerWidget {
 }
 
 /// Isi menu pengaturan di pojok kanan atas.
-enum _HomeMenu { budget, wallets, categories, backup }
+enum _HomeMenu { split, budget, wallets, categories, people, backup }
 
 extension on HomeScreen {
   void _openMenuItem(BuildContext context, _HomeMenu item) {
     final builder = switch (item) {
+      _HomeMenu.split => (BuildContext _) => const SplitBillScreen(),
       _HomeMenu.budget => (BuildContext _) => const BudgetSettingsScreen(),
       _HomeMenu.wallets => (BuildContext _) => const WalletsScreen(),
       _HomeMenu.categories => (BuildContext _) => const CategoriesScreen(),
+      _HomeMenu.people => (BuildContext _) => const PeopleScreen(),
       _HomeMenu.backup => (BuildContext _) => const BackupScreen(),
     };
 
