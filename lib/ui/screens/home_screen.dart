@@ -7,9 +7,9 @@
 ///  2. Belakangan ini boros atau tidak?  → grafik batang per hari
 ///  3. Yang mana saja?                   → daftar transaksi per hari
 ///
-/// Pertanyaan keempat, "habis buat apa", dijawab di [SummaryScreen] yang
-/// tinggal satu ketukan dari sini. Menaruhnya sekalian di beranda membuat
-/// layar ini harus digulir jauh sebelum sampai ke daftar transaksi.
+/// Pertanyaan keempat, "habis buat apa", dijawab di tab Ringkasan.
+/// Menaruhnya sekalian di beranda membuat layar ini harus digulir jauh
+/// sebelum sampai ke daftar transaksi.
 library;
 
 import 'package:flutter/material.dart';
@@ -18,17 +18,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:chacing/data/database.dart';
 import 'package:chacing/domain/budget_period.dart';
 import 'package:chacing/providers.dart';
-import 'package:chacing/ui/screens/backup_screen.dart';
 import 'package:chacing/ui/screens/budget_settings_screen.dart';
-import 'package:chacing/ui/screens/categories_screen.dart';
-import 'package:chacing/ui/screens/people_screen.dart';
 import 'package:chacing/ui/screens/quick_entry_screen.dart';
-import 'package:chacing/ui/screens/scan_receipt_screen.dart';
 import 'package:chacing/ui/screens/search_screen.dart';
-import 'package:chacing/ui/screens/split_bill_screen.dart';
-import 'package:chacing/ui/screens/summary_screen.dart';
-import 'package:chacing/ui/screens/trend_screen.dart';
-import 'package:chacing/ui/screens/wallets_screen.dart';
 import 'package:chacing/ui/widgets/budget_summary.dart';
 import 'package:chacing/ui/widgets/period_navigator.dart';
 import 'package:chacing/ui/widgets/spending_bar_chart.dart';
@@ -131,84 +123,6 @@ class HomeScreen extends ConsumerWidget {
               MaterialPageRoute(builder: (_) => const SearchScreen()),
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.pie_chart_outline),
-            tooltip: 'Ringkasan per kategori',
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const SummaryScreen()),
-            ),
-          ),
-          PopupMenuButton<_HomeMenu>(
-            tooltip: 'Pengaturan',
-            onSelected: (item) => _openMenuItem(context, item),
-            itemBuilder: (_) => const [
-              PopupMenuItem(
-                value: _HomeMenu.scan,
-                child: ListTile(
-                  leading: Icon(Icons.document_scanner_outlined),
-                  title: Text('Scan struk'),
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ),
-              PopupMenuItem(
-                value: _HomeMenu.split,
-                child: ListTile(
-                  leading: Icon(Icons.groups_outlined),
-                  title: Text('Bagi tagihan'),
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ),
-              PopupMenuItem(
-                value: _HomeMenu.trend,
-                child: ListTile(
-                  leading: Icon(Icons.show_chart),
-                  title: Text('Tren bulanan'),
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ),
-              PopupMenuDivider(),
-              PopupMenuItem(
-                value: _HomeMenu.budget,
-                child: ListTile(
-                  leading: Icon(Icons.flag_outlined),
-                  title: Text('Atur budget'),
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ),
-              PopupMenuItem(
-                value: _HomeMenu.wallets,
-                child: ListTile(
-                  leading: Icon(Icons.account_balance_wallet_outlined),
-                  title: Text('Dompet'),
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ),
-              PopupMenuItem(
-                value: _HomeMenu.categories,
-                child: ListTile(
-                  leading: Icon(Icons.label_outline),
-                  title: Text('Kategori'),
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ),
-              PopupMenuItem(
-                value: _HomeMenu.people,
-                child: ListTile(
-                  leading: Icon(Icons.people_outline),
-                  title: Text('Orang'),
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ),
-              PopupMenuItem(
-                value: _HomeMenu.backup,
-                child: ListTile(
-                  leading: Icon(Icons.backup_outlined),
-                  title: Text('Cadangkan & pulihkan'),
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ),
-            ],
-          ),
         ],
       ),
       body: transactions.when(
@@ -228,35 +142,6 @@ class HomeScreen extends ConsumerWidget {
         label: const Text('Catat'),
       ),
     );
-  }
-}
-
-/// Isi menu pengaturan di pojok kanan atas.
-enum _HomeMenu {
-  scan,
-  split,
-  trend,
-  budget,
-  wallets,
-  categories,
-  people,
-  backup,
-}
-
-extension on HomeScreen {
-  void _openMenuItem(BuildContext context, _HomeMenu item) {
-    final builder = switch (item) {
-      _HomeMenu.scan => (BuildContext _) => const ScanReceiptScreen(),
-      _HomeMenu.split => (BuildContext _) => const SplitBillScreen(),
-      _HomeMenu.trend => (BuildContext _) => const TrendScreen(),
-      _HomeMenu.budget => (BuildContext _) => const BudgetSettingsScreen(),
-      _HomeMenu.wallets => (BuildContext _) => const WalletsScreen(),
-      _HomeMenu.categories => (BuildContext _) => const CategoriesScreen(),
-      _HomeMenu.people => (BuildContext _) => const PeopleScreen(),
-      _HomeMenu.backup => (BuildContext _) => const BackupScreen(),
-    };
-
-    Navigator.of(context).push(MaterialPageRoute(builder: builder));
   }
 }
 

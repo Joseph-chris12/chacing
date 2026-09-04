@@ -5,12 +5,14 @@
 /// in-memory dan seluruh pohon provider ikut memakainya.
 library;
 
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:chacing/data/backup.dart';
 import 'package:chacing/data/api_key_store.dart';
 import 'package:chacing/data/connection.dart';
 import 'package:chacing/data/gemini_client.dart';
+import 'package:chacing/data/settings_store.dart';
 import 'package:chacing/data/database.dart';
 import 'package:chacing/data/repositories/budget_repository.dart';
 import 'package:chacing/data/repositories/category_repository.dart';
@@ -283,3 +285,36 @@ final receiptScannerProvider = Provider<GeminiReceiptScanner>((ref) {
   ref.onDispose(scanner.dispose);
   return scanner;
 });
+
+// -------------------------------------------------------------- pengaturan
+
+final settingsStoreProvider = Provider<SettingsStore>(
+  (ref) => const SettingsStore(),
+);
+
+/// Mode tampilan yang sedang berlaku.
+///
+/// Dimulai dari bawaan terang, lalu diganti begitu pilihan tersimpan
+/// selesai dibaca. Menunggu pembacaan selesai sebelum menggambar apa pun
+/// akan menampilkan layar kosong sesaat setiap kali aplikasi dibuka.
+class ThemeModeController extends StateNotifier<ThemeMode> {
+  ThemeModeController(this._store) : super(SettingsStore.defaultMode) {
+    _load();
+  }
+
+  final SettingsStore _store;
+
+  Future<void> _load() async {
+    state = await _store.read();
+  }
+
+  Future<void> set(ThemeMode mode) async {
+    state = mode;
+    await _store.write(mode);
+  }
+}
+
+final themeModeProvider =
+    StateNotifierProvider<ThemeModeController, ThemeMode>(
+  (ref) => ThemeModeController(ref.watch(settingsStoreProvider)),
+);

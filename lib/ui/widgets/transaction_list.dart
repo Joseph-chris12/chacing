@@ -188,7 +188,10 @@ class _EmptyState extends StatelessWidget {
 
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        // Sisa ruang di bawah disediakan untuk tombol Catat yang melayang.
+        // Tanpa itu, tombolnya menutupi kalimat yang justru menyuruh
+        // menekannya.
+        padding: const EdgeInsets.fromLTRB(32, 32, 32, 104),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [

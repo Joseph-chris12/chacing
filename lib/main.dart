@@ -12,7 +12,7 @@ import 'package:intl/intl.dart';
 
 import 'package:chacing/data/seed.dart';
 import 'package:chacing/providers.dart';
-import 'package:chacing/ui/screens/home_screen.dart';
+import 'package:chacing/ui/screens/main_shell.dart';
 import 'package:chacing/ui/theme.dart';
 
 Future<void> main() async {
@@ -30,16 +30,16 @@ final appInitProvider = FutureProvider<void>((ref) async {
   await DatabaseSeeder(ref.watch(databaseProvider)).run();
 });
 
-class ChacingApp extends StatelessWidget {
+class ChacingApp extends ConsumerWidget {
   const ChacingApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return MaterialApp(
       title: 'Chacing',
       debugShowCheckedModeBanner: false,
-      // Mode gelap mengikuti sistem — gratis, tidak perlu layar pengaturan.
-      themeMode: ThemeMode.system,
+      // Bawaannya terang; pengguna bisa menggantinya di Lainnya → Tampilan.
+      themeMode: ref.watch(themeModeProvider),
       theme: buildLightTheme(),
       darkTheme: buildDarkTheme(),
       home: const _Boot(),
@@ -76,7 +76,7 @@ class _Boot extends ConsumerWidget {
               ),
             ),
           ),
-          data: (_) => const HomeScreen(),
+          data: (_) => const MainShell(),
         );
   }
 }
