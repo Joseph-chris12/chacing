@@ -107,7 +107,7 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
             '1. Buka aistudio.google.com dengan akun Google-mu.\n'
             '2. Pilih "Get API key", lalu buat kunci baru.\n'
             '3. Salin kuncinya dan tempel di kolom atas.\n\n'
-            'Kuota gratisnya cukup untuk pemakaian pribadi.',
+            'Kuotanya cukup untuk memindai beberapa struk sehari.',
             style: theme.textTheme.bodySmall,
           ),
           const SizedBox(height: 24),
@@ -128,6 +128,50 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
                     'penyimpanan aman bawaan HP, tidak ikut ke berkas '
                     'cadangan, dan tidak pernah dikirim ke mana pun selain '
                     'ke Google.',
+                    style: theme.textTheme.bodySmall,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Card(
+            color: theme.colorScheme.surfaceContainerHigh,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.visibility_outlined,
+                        size: 18,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Di kuota gratis, fotonya dilihat Google',
+                          style: theme.textTheme.titleSmall,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Google memakai apa yang dikirim lewat kuota gratis — '
+                    'termasuk foto struk — untuk mengembangkan produknya, '
+                    'dan petugasnya boleh membacanya. Satu foto struk '
+                    'memuat di mana kamu makan, beli apa, dan kapan.',
+                    style: theme.textTheme.bodySmall,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Kalau itu mengganggu, aktifkan penagihan di akun '
+                    'Google-mu; kuota berbayar tidak dipakai untuk '
+                    'pengembangan. Atau lewati saja fitur scan — semua '
+                    'fitur lain tetap jalan tanpa kunci ini.',
                     style: theme.textTheme.bodySmall,
                   ),
                 ],
