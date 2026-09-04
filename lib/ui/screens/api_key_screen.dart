@@ -1,8 +1,11 @@
 /// Memasang kunci API pembaca struk.
 ///
-/// Kuncinya dimasukkan sendiri oleh pemilik aplikasi, tidak ditanam di
-/// dalam APK. Kunci yang ditanam bisa diambil siapa pun yang membongkar
-/// berkas aplikasinya, lalu dipakai atas tanggungan pemiliknya.
+/// Isinya langkah, bukan penjelasan. Layar yang muncul saat seseorang
+/// sedang mencoba menyelesaikan satu pekerjaan bukan tempat membaca
+/// alasan — yang perlu dibaca cuma "berikutnya ngapain".
+///
+/// Penjelasannya tidak dihapus, hanya dilipat: konsekuensi privasi kuota
+/// gratis tetap harus bisa ditemukan sebelum ada foto yang terkirim.
 library;
 
 import 'package:flutter/material.dart';
@@ -10,6 +13,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:chacing/data/gemini_client.dart';
 import 'package:chacing/providers.dart';
+
+/// Langkah mendapatkan kunci, ditulis sependek mungkin.
+const _steps = <String>[
+  'Buka aistudio.google.com',
+  'Masuk dengan akun Google',
+  'Ketuk "Get API key"',
+  'Ketuk "Create API key"',
+  'Salin kunci yang muncul',
+  'Tempel di kolom bawah, lalu Simpan',
+];
 
 class ApiKeyScreen extends ConsumerStatefulWidget {
   const ApiKeyScreen({super.key});
@@ -55,9 +68,7 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
     final navigator = Navigator.of(context);
 
     await ref.read(apiKeyStoreProvider).write(key);
-    await ref
-        .read(settingsStoreProvider)
-        .writeScanModel(_modelController.text);
+    await ref.read(settingsStoreProvider).writeScanModel(_modelController.text);
     ref.invalidate(hasApiKeyProvider);
 
     if (mounted) navigator.pop(true);
@@ -84,27 +95,38 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
         children: [
           if (hasKey)
-            Card(
-              child: ListTile(
-                leading: Icon(Icons.check_circle_outline,
-                    color: theme.colorScheme.primary),
-                title: const Text('Kunci sudah terpasang'),
-                subtitle: const Text(
-                  'Isi kolom di bawah untuk menggantinya.',
-                ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.check_circle,
+                    size: 18,
+                    color: theme.colorScheme.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Kunci sudah terpasang',
+                      style: theme.textTheme.bodyMedium,
+                    ),
+                  ),
+                ],
               ),
             ),
-          const SizedBox(height: 12),
+          for (var i = 0; i < _steps.length; i++)
+            _Step(number: i + 1, text: _steps[i]),
+          const SizedBox(height: 20),
           TextField(
             controller: _controller,
             obscureText: _obscured,
             autocorrect: false,
             enableSuggestions: false,
             decoration: InputDecoration(
-              labelText: 'Kunci API Gemini',
+              labelText: 'Kunci API',
               hintText: 'AQ.Ab…',
               suffixIcon: IconButton(
                 icon: Icon(
@@ -114,118 +136,132 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           SizedBox(
             height: 48,
             child: FilledButton(
               onPressed: _saving ? null : _save,
-              child: Text(_saving ? 'Menyimpan…' : 'Simpan kunci'),
-            ),
-          ),
-          const SizedBox(height: 28),
-          Text('Model yang dipakai', style: theme.textTheme.titleSmall),
-          const SizedBox(height: 8),
-          TextField(
-            controller: _modelController,
-            autocorrect: false,
-            enableSuggestions: false,
-            enabled: _loadedModel,
-            decoration: InputDecoration(
-              labelText: 'Nama model',
-              hintText: GeminiReceiptScanner.defaultModel,
-              helperText: 'Kosongkan untuk memakai '
-                  '${GeminiReceiptScanner.defaultModel}',
-              helperMaxLines: 2,
+              child: Text(_saving ? 'Menyimpan…' : 'Simpan'),
             ),
           ),
           const SizedBox(height: 8),
-          Text(
-            'Google menghentikan model lama untuk akun baru tanpa mengubah '
-            'dokumentasinya lebih dulu. Kalau scan gagal dengan kode 404, '
-            'pesannya biasanya menyebut nama model penggantinya — tulis di '
-            'sini, tanpa perlu memperbarui aplikasi.',
-            style: theme.textTheme.bodySmall,
+          _Details(
+            modelController: _modelController,
+            modelEnabled: _loadedModel,
           ),
-          const SizedBox(height: 28),
-          Text('Cara mendapatkannya', style: theme.textTheme.titleSmall),
-          const SizedBox(height: 8),
-          Text(
-            '1. Buka aistudio.google.com dengan akun Google-mu.\n'
-            '2. Pilih "Get API key", lalu buat kunci baru.\n'
-            '3. Salin kuncinya dan tempel di kolom atas.\n\n'
-            'Kunci baru dari AI Studio berawalan "AQ.Ab". Yang '
-            'berawalan "AIza" sudah tidak dilayani Google sejak '
-            'September 2026.\n\n'
-            'Kuotanya cukup untuk memindai beberapa struk sehari.',
-            style: theme.textTheme.bodySmall,
-          ),
-          const SizedBox(height: 24),
-          Card(
-            color: theme.colorScheme.surfaceContainerHigh,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Kenapa harus kunci sendiri',
-                      style: theme.textTheme.titleSmall),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Kunci yang ditanam di dalam aplikasi bisa diambil '
-                    'siapa pun yang membongkar berkasnya, lalu dipakai atas '
-                    'tagihan pemiliknya. Karena itu kuncimu disimpan di '
-                    'penyimpanan aman bawaan HP, tidak ikut ke berkas '
-                    'cadangan, dan tidak pernah dikirim ke mana pun selain '
-                    'ke Google.',
-                    style: theme.textTheme.bodySmall,
-                  ),
-                ],
+        ],
+      ),
+    );
+  }
+}
+
+class _Step extends StatelessWidget {
+  const _Step({required this.number, required this.text});
+
+  final int number;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            width: 28,
+            height: 28,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primaryContainer,
+              shape: BoxShape.circle,
+            ),
+            child: Text(
+              '$number',
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: theme.colorScheme.onPrimaryContainer,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ),
-          const SizedBox(height: 16),
-          Card(
-            color: theme.colorScheme.surfaceContainerHigh,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.visibility_outlined,
-                        size: 18,
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Di kuota gratis, fotonya dilihat Google',
-                          style: theme.textTheme.titleSmall,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Google memakai apa yang dikirim lewat kuota gratis — '
-                    'termasuk foto struk — untuk mengembangkan produknya, '
-                    'dan petugasnya boleh membacanya. Satu foto struk '
-                    'memuat di mana kamu makan, beli apa, dan kapan.',
-                    style: theme.textTheme.bodySmall,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Kalau itu mengganggu, aktifkan penagihan di akun '
-                    'Google-mu; kuota berbayar tidak dipakai untuk '
-                    'pengembangan. Atau lewati saja fitur scan — semua '
-                    'fitur lain tetap jalan tanpa kunci ini.',
-                    style: theme.textTheme.bodySmall,
-                  ),
-                ],
+          const SizedBox(width: 14),
+          Expanded(child: Text(text, style: theme.textTheme.bodyLarge)),
+        ],
+      ),
+    );
+  }
+}
+
+/// Yang tidak perlu dibaca untuk menyelesaikan pemasangan.
+///
+/// Dilipat, bukan dibuang. Konsekuensi privasi kuota gratis tetap harus
+/// bisa ditemukan sebelum ada satu foto pun yang terkirim, dan kolom
+/// nama model adalah satu-satunya jalan keluar kalau Google menghentikan
+/// model yang dipakai sekarang.
+class _Details extends StatelessWidget {
+  const _Details({required this.modelController, required this.modelEnabled});
+
+  final TextEditingController modelController;
+  final bool modelEnabled;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Theme(
+      // Garis pemisah bawaan ExpansionTile memotong tata letak yang
+      // sudah rapi tanpa menambah apa pun.
+      data: theme.copyWith(dividerColor: Colors.transparent),
+      child: Column(
+        children: [
+          ExpansionTile(
+            title: Text('Kalau scan gagal', style: theme.textTheme.titleSmall),
+            childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            children: [
+              TextField(
+                controller: modelController,
+                autocorrect: false,
+                enableSuggestions: false,
+                enabled: modelEnabled,
+                decoration: InputDecoration(
+                  labelText: 'Nama model',
+                  hintText: GeminiReceiptScanner.defaultModel,
+                ),
               ),
+              const SizedBox(height: 10),
+              Text(
+                'Kalau muncul kode 404, pesannya menyebut nama model '
+                'pengganti. Tulis di sini, lalu Simpan.\n\n'
+                'Kosongkan untuk kembali ke '
+                '${GeminiReceiptScanner.defaultModel}.',
+                style: theme.textTheme.bodySmall,
+              ),
+            ],
+          ),
+          ExpansionTile(
+            title: Text(
+              'Fotonya dilihat Google',
+              style: theme.textTheme.titleSmall,
             ),
+            childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            children: [
+              Text(
+                'Di kuota gratis, Google memakai apa yang dikirim — '
+                'termasuk foto struk — untuk mengembangkan produknya, dan '
+                'petugasnya boleh membacanya. Satu foto struk memuat di '
+                'mana kamu makan, beli apa, dan kapan.\n\n'
+                'Aktifkan penagihan di akun Google-mu kalau itu '
+                'mengganggu; kuota berbayar tidak dipakai untuk '
+                'pengembangan. Atau lewati fitur scan — semua fitur lain '
+                'tetap jalan tanpa kunci ini.\n\n'
+                'Kuncimu sendiri disimpan di penyimpanan aman bawaan HP, '
+                'tidak ikut ke berkas cadangan, dan tidak dikirim ke mana '
+                'pun selain ke Google.',
+                style: theme.textTheme.bodySmall,
+              ),
+            ],
           ),
         ],
       ),
