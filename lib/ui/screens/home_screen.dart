@@ -23,6 +23,7 @@ import 'package:chacing/ui/screens/budget_settings_screen.dart';
 import 'package:chacing/ui/screens/categories_screen.dart';
 import 'package:chacing/ui/screens/people_screen.dart';
 import 'package:chacing/ui/screens/quick_entry_screen.dart';
+import 'package:chacing/ui/screens/scan_receipt_screen.dart';
 import 'package:chacing/ui/screens/search_screen.dart';
 import 'package:chacing/ui/screens/split_bill_screen.dart';
 import 'package:chacing/ui/screens/summary_screen.dart';
@@ -142,6 +143,14 @@ class HomeScreen extends ConsumerWidget {
             onSelected: (item) => _openMenuItem(context, item),
             itemBuilder: (_) => const [
               PopupMenuItem(
+                value: _HomeMenu.scan,
+                child: ListTile(
+                  leading: Icon(Icons.document_scanner_outlined),
+                  title: Text('Scan struk'),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              PopupMenuItem(
                 value: _HomeMenu.split,
                 child: ListTile(
                   leading: Icon(Icons.groups_outlined),
@@ -223,11 +232,21 @@ class HomeScreen extends ConsumerWidget {
 }
 
 /// Isi menu pengaturan di pojok kanan atas.
-enum _HomeMenu { split, trend, budget, wallets, categories, people, backup }
+enum _HomeMenu {
+  scan,
+  split,
+  trend,
+  budget,
+  wallets,
+  categories,
+  people,
+  backup,
+}
 
 extension on HomeScreen {
   void _openMenuItem(BuildContext context, _HomeMenu item) {
     final builder = switch (item) {
+      _HomeMenu.scan => (BuildContext _) => const ScanReceiptScreen(),
       _HomeMenu.split => (BuildContext _) => const SplitBillScreen(),
       _HomeMenu.trend => (BuildContext _) => const TrendScreen(),
       _HomeMenu.budget => (BuildContext _) => const BudgetSettingsScreen(),

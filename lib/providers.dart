@@ -8,7 +8,9 @@ library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:chacing/data/backup.dart';
+import 'package:chacing/data/api_key_store.dart';
 import 'package:chacing/data/connection.dart';
+import 'package:chacing/data/gemini_client.dart';
 import 'package:chacing/data/database.dart';
 import 'package:chacing/data/repositories/budget_repository.dart';
 import 'package:chacing/data/repositories/category_repository.dart';
@@ -264,4 +266,20 @@ final recurringProvider = FutureProvider<List<RecurringCandidate>>((ref) async {
   ref.watch(recentTransactionsProvider);
 
   return const RecurringDetector().detect(await repository.recurringInputs());
+});
+
+// ------------------------------------------------------------- scan struk
+
+/// Penyimpan kunci API di penyimpanan aman bawaan sistem.
+final apiKeyStoreProvider = Provider<ApiKeyStore>((ref) => const ApiKeyStore());
+
+/// Apakah kunci API sudah dipasang.
+final hasApiKeyProvider = FutureProvider<bool>(
+  (ref) => ref.watch(apiKeyStoreProvider).hasKey,
+);
+
+final receiptScannerProvider = Provider<GeminiReceiptScanner>((ref) {
+  final scanner = GeminiReceiptScanner();
+  ref.onDispose(scanner.dispose);
+  return scanner;
 });

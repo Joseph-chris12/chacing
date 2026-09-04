@@ -6,7 +6,12 @@ plugins {
 
 android {
     namespace = "app.chacing"
-    compileSdk = flutter.compileSdkVersion
+    // Dinaikkan dari bawaan Flutter karena flutter_secure_storage —
+    // tempat kunci API pembaca struk disimpan — menuntut API 37.
+    // `compileSdk` hanya menentukan API mana yang boleh dipakai saat
+    // kompilasi; perilaku aplikasi di HP ditentukan `targetSdk` di bawah,
+    // dan itu sengaja dibiarkan mengikuti bawaan Flutter.
+    compileSdk = 37
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
