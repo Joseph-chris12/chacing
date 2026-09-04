@@ -195,7 +195,10 @@ class _Chooser extends StatelessWidget {
             color: theme.colorScheme.errorContainer,
             child: Padding(
               padding: const EdgeInsets.all(16),
-              child: Text(
+              child: SelectableText(
+                // Bisa disalin: pesan dari Google kadang menyebut nama
+                // proyek atau API yang perlu dicari, dan mengetik ulang
+                // dari layar HP itu menyiksa.
                 error!,
                 style: TextStyle(color: theme.colorScheme.onErrorContainer),
               ),

@@ -116,24 +116,55 @@ Rules:
       );
     }
 
-    if (response.statusCode == 400 || response.statusCode == 403) {
-      throw const ReceiptScanException(
-        'Kunci API ditolak. Periksa kembali kuncinya di Pengaturan.',
-      );
-    }
-    if (response.statusCode == 429) {
-      throw const ReceiptScanException(
-        'Kuota pembacaan struk hari ini sudah habis. Coba lagi nanti, '
-        'atau catat manual dulu.',
-      );
-    }
     if (response.statusCode >= 400) {
+      // Alasan asli dari Google ikut ditampilkan. Pesan seragam
+      // "kunci ditolak" menyembunyikan bedanya kunci salah ketik, API
+      // yang belum diaktifkan, dan kunci yang dibatasi ke domain —
+      // padahal ketiganya butuh perbaikan yang berbeda.
+      final detail = _errorDetail(response.body);
+      final suffix = detail.isEmpty ? '' : '\n\n$detail';
+
+      if (response.statusCode == 429) {
+        throw ReceiptScanException(
+          'Kuota pembacaan struk sudah habis. Coba lagi nanti, atau '
+          'catat manual dulu.$suffix',
+        );
+      }
+      if (response.statusCode == 400 || response.statusCode == 403) {
+        throw ReceiptScanException(
+          'Kunci API ditolak (${response.statusCode}).$suffix\n\n'
+          'Periksa kuncinya di Pengaturan, dan pastikan Gemini API sudah '
+          'aktif untuk akun itu serta kuncinya tidak dibatasi ke aplikasi '
+          'atau domain tertentu.',
+        );
+      }
       throw ReceiptScanException(
-        'Layanan pembaca struk sedang bermasalah (${response.statusCode}).',
+        'Layanan pembaca struk sedang bermasalah '
+        '(${response.statusCode}).$suffix',
       );
     }
 
     return _parser.parse(_extractText(response.body));
+  }
+
+  /// Mengambil kalimat error milik Google dari balasan gagal.
+  ///
+  /// Bentuknya `{"error": {"message": ...}}`. Kalau tidak berbentuk
+  /// itu, lebih baik mengembalikan kosong daripada menampilkan potongan
+  /// JSON mentah ke pengguna.
+  String _errorDetail(String body) {
+    try {
+      final decoded = jsonDecode(body);
+      if (decoded is! Map<String, dynamic>) return '';
+
+      final error = decoded['error'];
+      if (error is! Map) return '';
+
+      final message = error['message'];
+      return message is String ? message.trim() : '';
+    } on FormatException {
+      return '';
+    }
   }
 
   /// Mengambil teks jawaban dari bungkus balasan Gemini.
