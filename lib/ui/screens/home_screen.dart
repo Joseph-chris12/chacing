@@ -26,6 +26,7 @@ import 'package:chacing/ui/screens/quick_entry_screen.dart';
 import 'package:chacing/ui/screens/search_screen.dart';
 import 'package:chacing/ui/screens/split_bill_screen.dart';
 import 'package:chacing/ui/screens/summary_screen.dart';
+import 'package:chacing/ui/screens/trend_screen.dart';
 import 'package:chacing/ui/screens/wallets_screen.dart';
 import 'package:chacing/ui/widgets/budget_summary.dart';
 import 'package:chacing/ui/widgets/period_navigator.dart';
@@ -148,6 +149,14 @@ class HomeScreen extends ConsumerWidget {
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
+              PopupMenuItem(
+                value: _HomeMenu.trend,
+                child: ListTile(
+                  leading: Icon(Icons.show_chart),
+                  title: Text('Tren bulanan'),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
               PopupMenuDivider(),
               PopupMenuItem(
                 value: _HomeMenu.budget,
@@ -214,12 +223,13 @@ class HomeScreen extends ConsumerWidget {
 }
 
 /// Isi menu pengaturan di pojok kanan atas.
-enum _HomeMenu { split, budget, wallets, categories, people, backup }
+enum _HomeMenu { split, trend, budget, wallets, categories, people, backup }
 
 extension on HomeScreen {
   void _openMenuItem(BuildContext context, _HomeMenu item) {
     final builder = switch (item) {
       _HomeMenu.split => (BuildContext _) => const SplitBillScreen(),
+      _HomeMenu.trend => (BuildContext _) => const TrendScreen(),
       _HomeMenu.budget => (BuildContext _) => const BudgetSettingsScreen(),
       _HomeMenu.wallets => (BuildContext _) => const WalletsScreen(),
       _HomeMenu.categories => (BuildContext _) => const CategoriesScreen(),

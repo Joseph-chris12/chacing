@@ -58,3 +58,8 @@ const _shortWeekdays = <String>[
 
 String formatShortWeekday(DateTime date) =>
     _shortWeekdays[date.weekday - 1];
+
+final _monthShort = DateFormat('MMM', 'id_ID');
+
+/// "Sep" — untuk label sumbu grafik yang sempit.
+String formatMonthShort(DateTime date) => _monthShort.format(date);

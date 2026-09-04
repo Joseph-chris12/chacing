@@ -18,6 +18,7 @@ import 'package:uuid/uuid.dart';
 
 import 'package:chacing/data/database.dart';
 import 'package:chacing/domain/budget_period.dart';
+import 'package:chacing/domain/recurring_detector.dart';
 import 'package:chacing/domain/split_calculator.dart';
 
 /// Data yang dikirim UI untuk disimpan. Belum punya id kalau baru.
@@ -677,6 +678,81 @@ class TransactionRepository {
     return row?.name ?? 'dompet lain';
   }
 
+  // ------------------------------------------------------------------- tren
+
+  /// Pengeluaran per bulan kalender, bulan terlama lebih dulu.
+  ///
+  /// Bulan tanpa pengeluaran tetap dikembalikan bernilai nol. Grafik tren
+  /// yang melewatkan bulan kosong menyambung dua bulan yang berjauhan
+  /// menjadi satu garis landai, dan itu membaca pola yang tidak pernah ada.
+  Future<List<MonthlySpending>> spendingByMonth({int months = 6}) async {
+    final now = DateTime.now();
+    final firstMonth = DateTime(now.year, now.month - (months - 1), 1);
+    final end = DateTime(now.year, now.month + 1, 1);
+
+    final rows = await _db.customSelect(
+      '''
+      SELECT occurred_at, own_share
+      FROM transactions
+      WHERE occurred_at >= ? AND occurred_at < ?
+        AND deleted_at IS NULL
+        AND exclude_from_budget = 0
+      ''',
+      variables: [
+        Variable.withDateTime(firstMonth),
+        Variable.withDateTime(end),
+      ],
+      readsFrom: {_db.transactions},
+    ).get();
+
+    final totals = <DateTime, int>{};
+    for (final row in rows) {
+      final at = row.read<DateTime>('occurred_at');
+      final month = DateTime(at.year, at.month, 1);
+      totals[month] = (totals[month] ?? 0) + row.read<int>('own_share');
+    }
+
+    return [
+      for (var i = 0; i < months; i++)
+        () {
+          final month = DateTime(firstMonth.year, firstMonth.month + i, 1);
+          return MonthlySpending(month: month, total: totals[month] ?? 0);
+        }(),
+    ];
+  }
+
+  Stream<List<MonthlySpending>> watchSpendingByMonth({int months = 6}) {
+    return _db
+        .select(_db.transactions)
+        .watch()
+        .asyncMap((_) => spendingByMonth(months: months));
+  }
+
+  /// Bahan mentah untuk pendeteksi langganan.
+  ///
+  /// Pindah dana dikecualikan lewat `exclude_from_budget`: nominalnya
+  /// memang berulang dan seragam, dan tanpa disaring akan selalu terbaca
+  /// sebagai langganan.
+  Future<List<RecurringInput>> recurringInputs({int months = 12}) async {
+    final now = DateTime.now();
+    final since = DateTime(now.year, now.month - months, 1);
+
+    final rows = await (_db.select(_db.transactions)
+          ..where((t) =>
+              t.deletedAt.isNull() &
+              t.excludeFromBudget.equals(false) &
+              t.occurredAt.isBiggerOrEqualValue(since)))
+        .get();
+
+    return rows
+        .map((row) => RecurringInput(
+              merchant: row.merchant,
+              amount: row.total,
+              occurredAt: row.occurredAt,
+            ))
+        .toList();
+  }
+
   // ------------------------------------------------------------------ sync
 
   /// Baris yang belum terkirim ke server.
@@ -729,6 +805,15 @@ class DailySpending {
 
   /// Tengah malam waktu lokal pada hari yang bersangkutan.
   final DateTime day;
+
+  final int total;
+}
+
+class MonthlySpending {
+  const MonthlySpending({required this.month, required this.total});
+
+  /// Tanggal 1 bulan yang bersangkutan.
+  final DateTime month;
 
   final int total;
 }

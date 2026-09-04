@@ -16,6 +16,7 @@ import 'package:chacing/data/repositories/person_repository.dart';
 import 'package:chacing/data/repositories/transaction_repository.dart';
 import 'package:chacing/data/repositories/wallet_repository.dart';
 import 'package:chacing/domain/budget_period.dart';
+import 'package:chacing/domain/recurring_detector.dart';
 
 const _calculator = BudgetPeriodCalculator();
 
@@ -242,4 +243,25 @@ final selfPersonProvider = Provider<Person?>((ref) {
     if (person.isSelf) return person;
   }
   return null;
+});
+
+// --------------------------------------------------------------------- tren
+
+/// Pengeluaran per bulan untuk grafik tren.
+final monthlySpendingProvider = StreamProvider<List<MonthlySpending>>(
+  (ref) => ref.watch(transactionRepositoryProvider).watchSpendingByMonth(),
+);
+
+/// Dugaan langganan dan tagihan berulang.
+///
+/// Dihitung di sini, bukan di database: aturannya soal pola, bukan soal
+/// penjumlahan, dan menuliskannya sebagai SQL akan membuatnya tidak bisa
+/// diuji tanpa database.
+final recurringProvider = FutureProvider<List<RecurringCandidate>>((ref) async {
+  final repository = ref.watch(transactionRepositoryProvider);
+
+  // Ikut dihitung ulang setiap ada perubahan transaksi.
+  ref.watch(recentTransactionsProvider);
+
+  return const RecurringDetector().detect(await repository.recurringInputs());
 });
