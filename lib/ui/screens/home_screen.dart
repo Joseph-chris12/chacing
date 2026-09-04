@@ -22,6 +22,7 @@ import 'package:chacing/ui/screens/backup_screen.dart';
 import 'package:chacing/ui/screens/budget_settings_screen.dart';
 import 'package:chacing/ui/screens/categories_screen.dart';
 import 'package:chacing/ui/screens/quick_entry_screen.dart';
+import 'package:chacing/ui/screens/search_screen.dart';
 import 'package:chacing/ui/screens/summary_screen.dart';
 import 'package:chacing/ui/screens/wallets_screen.dart';
 import 'package:chacing/ui/widgets/budget_summary.dart';
@@ -119,6 +120,13 @@ class HomeScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Chacing'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            tooltip: 'Cari transaksi',
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const SearchScreen()),
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.pie_chart_outline),
             tooltip: 'Ringkasan per kategori',

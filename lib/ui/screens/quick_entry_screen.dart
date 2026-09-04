@@ -42,6 +42,12 @@ class QuickEntryScreen extends ConsumerStatefulWidget {
 
 class _QuickEntryScreenState extends ConsumerState<QuickEntryScreen> {
   final _merchantController = TextEditingController();
+  final _noteController = TextEditingController();
+
+  /// Catatan disembunyikan sampai diminta. Sebagian besar pencatatan
+  /// tidak butuh catatan, dan isian tambahan di jalur tercepat hanya
+  /// memperlambat yang lewat setiap hari.
+  bool _showNote = false;
 
   int _amount = 0;
   String? _categoryId;
@@ -63,11 +69,14 @@ class _QuickEntryScreenState extends ConsumerState<QuickEntryScreen> {
     _walletId = existing.walletId;
     _date = existing.occurredAt;
     _merchantController.text = existing.merchant;
+    _noteController.text = existing.note ?? '';
+    _showNote = (existing.note ?? '').isNotEmpty;
   }
 
   @override
   void dispose() {
     _merchantController.dispose();
+    _noteController.dispose();
     super.dispose();
   }
 
@@ -157,7 +166,9 @@ class _QuickEntryScreenState extends ConsumerState<QuickEntryScreen> {
           serviceCharge: existing?.serviceCharge ?? 0,
           discount: existing?.discount ?? 0,
           excludeFromBudget: existing?.excludeFromBudget ?? false,
-          note: existing?.note,
+          note: _noteController.text.trim().isEmpty
+              ? null
+              : _noteController.text.trim(),
           receiptPhotoPath: existing?.receiptPhotoPath,
           source: existing?.source ?? TransactionSource.manual,
           items: items,
@@ -239,14 +250,41 @@ class _QuickEntryScreenState extends ConsumerState<QuickEntryScreen> {
                       child: TextField(
                         controller: _merchantController,
                         textCapitalization: TextCapitalization.sentences,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           hintText: 'Nama tempat (boleh dikosongkan)',
-                          prefixIcon: Icon(Icons.storefront_outlined),
+                          prefixIcon: const Icon(Icons.storefront_outlined),
                           isDense: true,
-                          border: OutlineInputBorder(),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _showNote
+                                  ? Icons.notes
+                                  : Icons.note_add_outlined,
+                            ),
+                            tooltip: _showNote
+                                ? 'Sembunyikan catatan'
+                                : 'Tambah catatan',
+                            onPressed: () =>
+                                setState(() => _showNote = !_showNote),
+                          ),
                         ),
                       ),
                     ),
+                    if (_showNote) ...[
+                      const SizedBox(height: 8),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: TextField(
+                          controller: _noteController,
+                          textCapitalization: TextCapitalization.sentences,
+                          maxLines: 2,
+                          decoration: const InputDecoration(
+                            hintText: 'Catatan',
+                            prefixIcon: Icon(Icons.notes),
+                            isDense: true,
+                          ),
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 12),
                   ],
                 ),

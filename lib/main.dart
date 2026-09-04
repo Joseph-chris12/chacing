@@ -13,6 +13,7 @@ import 'package:intl/intl.dart';
 import 'package:chacing/data/seed.dart';
 import 'package:chacing/providers.dart';
 import 'package:chacing/ui/screens/home_screen.dart';
+import 'package:chacing/ui/theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,14 +40,8 @@ class ChacingApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       // Mode gelap mengikuti sistem — gratis, tidak perlu layar pengaturan.
       themeMode: ThemeMode.system,
-      theme: ThemeData(
-        colorSchemeSeed: const Color(0xFF10B981),
-        brightness: Brightness.light,
-      ),
-      darkTheme: ThemeData(
-        colorSchemeSeed: const Color(0xFF10B981),
-        brightness: Brightness.dark,
-      ),
+      theme: buildLightTheme(),
+      darkTheme: buildDarkTheme(),
       home: const _Boot(),
     );
   }

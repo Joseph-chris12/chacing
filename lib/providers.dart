@@ -184,3 +184,41 @@ final recentTransactionsProvider = StreamProvider<List<Transaction>>(
 final backupServiceProvider = Provider<BackupService>(
   (ref) => BackupService(ref.watch(databaseProvider)),
 );
+
+// ------------------------------------------------------------------ dompet
+
+/// Saldo tiap dompet: id dompet ke nominal.
+final walletBalancesProvider = StreamProvider<Map<String, int>>(
+  (ref) => ref.watch(transactionRepositoryProvider).watchWalletBalances(),
+);
+
+// -------------------------------------------------------------- pencarian
+
+/// Kata kunci pencarian di layar cari.
+final searchQueryProvider = StateProvider<String>((ref) => '');
+
+/// Penyaring kategori. Null berarti semua kategori.
+final searchCategoryProvider = StateProvider<String?>((ref) => null);
+
+/// Penyaring dompet. Null berarti semua dompet.
+final searchWalletProvider = StateProvider<String?>((ref) => null);
+
+/// Apakah ada penyaring yang sedang aktif.
+final hasActiveFilterProvider = Provider<bool>((ref) {
+  return ref.watch(searchQueryProvider).trim().isNotEmpty ||
+      ref.watch(searchCategoryProvider) != null ||
+      ref.watch(searchWalletProvider) != null;
+});
+
+/// Hasil pencarian, lintas periode.
+///
+/// Sengaja tidak dibatasi periode yang sedang dilihat: kalau sedang mencari
+/// "kapan terakhir servis motor", membatasi ke minggu ini justru membuat
+/// pencariannya tidak berguna.
+final searchResultsProvider = StreamProvider<List<Transaction>>((ref) {
+  return ref.watch(transactionRepositoryProvider).watchFiltered(
+        query: ref.watch(searchQueryProvider),
+        categoryId: ref.watch(searchCategoryProvider),
+        walletId: ref.watch(searchWalletProvider),
+      );
+});

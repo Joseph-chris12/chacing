@@ -537,6 +537,146 @@ class TransactionRepository {
         .toList();
   }
 
+  /// Saldo tiap dompet: saldo awal dikurangi seluruh pengeluaran.
+  ///
+  /// Memakai `total`, bukan `own_share`. Yang keluar dari dompet di kasir
+  /// adalah seluruh nominal struk — kalau menalangi teman, uangnya benar
+  /// benar berkurang sebanyak itu meski porsi sendiri lebih kecil.
+  /// Ini satu-satunya tempat di aplikasi yang sengaja memakai `total`.
+  Stream<Map<String, int>> watchWalletBalances() {
+    return _db.customSelect(
+      '''
+      SELECT w.id AS wallet_id,
+             w.initial_balance - COALESCE(SUM(t.total), 0) AS balance
+      FROM wallets w
+      LEFT JOIN transactions t
+        ON t.wallet_id = w.id AND t.deleted_at IS NULL
+      WHERE w.deleted_at IS NULL
+      GROUP BY w.id, w.initial_balance
+      ''',
+      readsFrom: {_db.wallets, _db.transactions},
+    ).watch().map((rows) => {
+          for (final row in rows)
+            row.read<String>('wallet_id'): row.read<int>('balance'),
+        });
+  }
+
+  /// Mencari transaksi menurut nama tempat atau catatan.
+  ///
+  /// Pencarian dan penyaringan digabung dalam satu query supaya hasilnya
+  /// tetap satu stream — menggabungkan beberapa stream di lapisan UI
+  /// membuat daftar berkedip tiap kali salah satunya berubah.
+  Stream<List<Transaction>> watchFiltered({
+    String query = '',
+    String? categoryId,
+    String? walletId,
+    BudgetPeriodRange? range,
+    int limit = 300,
+  }) {
+    final select = _db.select(_db.transactions)
+      ..where((t) => t.deletedAt.isNull())
+      ..orderBy([(t) => OrderingTerm.desc(t.occurredAt)])
+      ..limit(limit);
+
+    final trimmed = query.trim();
+    if (trimmed.isNotEmpty) {
+      final pattern = '%$trimmed%';
+      select.where(
+        (t) => t.merchant.like(pattern) | t.note.like(pattern),
+      );
+    }
+    if (categoryId != null) {
+      select.where((t) => t.categoryId.equals(categoryId));
+    }
+    if (walletId != null) {
+      select.where((t) => t.walletId.equals(walletId));
+    }
+    if (range != null) {
+      select
+        ..where((t) => t.occurredAt.isBiggerOrEqualValue(range.start))
+        ..where((t) => t.occurredAt.isSmallerThanValue(range.end));
+    }
+
+    return select.watch();
+  }
+
+  // ------------------------------------------------------------- pindah dana
+
+  /// Memindahkan uang antar dompet sendiri.
+  ///
+  /// Dicatat sebagai dua transaksi berpasangan — keluar dari dompet asal,
+  /// masuk ke dompet tujuan sebagai nominal negatif — dan keduanya
+  /// dikecualikan dari budget. Memindahkan uang bukan pengeluaran, dan
+  /// menghitungnya sebagai pengeluaran akan menggandakan angka begitu
+  /// uang itu benar-benar dibelanjakan nanti.
+  Future<void> transfer({
+    required String fromWalletId,
+    required String toWalletId,
+    required int amount,
+    DateTime? occurredAt,
+    String? note,
+  }) async {
+    if (amount <= 0) return;
+    if (fromWalletId == toWalletId) return;
+
+    final now = DateTime.now();
+    final at = occurredAt ?? now;
+
+    final fromName = await _walletName(fromWalletId);
+    final toName = await _walletName(toWalletId);
+
+    await _db.transaction(() async {
+      await _insertTransfer(
+        walletId: fromWalletId,
+        merchant: 'Pindah ke $toName',
+        amount: amount,
+        at: at,
+        note: note,
+        now: now,
+      );
+      await _insertTransfer(
+        walletId: toWalletId,
+        merchant: 'Terima dari $fromName',
+        amount: -amount,
+        at: at,
+        note: note,
+        now: now,
+      );
+    });
+  }
+
+  Future<void> _insertTransfer({
+    required String walletId,
+    required String merchant,
+    required int amount,
+    required DateTime at,
+    required String? note,
+    required DateTime now,
+  }) {
+    return _db.into(_db.transactions).insert(
+          TransactionsCompanion.insert(
+            id: _uuid.v4(),
+            walletId: walletId,
+            merchant: merchant,
+            occurredAt: at,
+            total: amount,
+            ownShare: amount,
+            source: TransactionSource.manual,
+            subtotal: Value(amount),
+            note: Value(note),
+            excludeFromBudget: const Value(true),
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+  }
+
+  Future<String> _walletName(String id) async {
+    final row = await (_db.select(_db.wallets)..where((w) => w.id.equals(id)))
+        .getSingleOrNull();
+    return row?.name ?? 'dompet lain';
+  }
+
   // ------------------------------------------------------------------ sync
 
   /// Baris yang belum terkirim ke server.
