@@ -6,16 +6,13 @@
 /// yang perlu diperiksa terlihat lebih dulu.
 library;
 
-import 'dart:io';
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'package:chacing/data/database.dart';
 import 'package:chacing/data/gemini_client.dart';
+import 'package:chacing/data/receipt_capture.dart';
 import 'package:chacing/data/repositories/transaction_repository.dart';
 import 'package:chacing/domain/receipt_draft.dart';
 import 'package:chacing/domain/split_calculator.dart';
@@ -32,8 +29,6 @@ class ScanReceiptScreen extends ConsumerStatefulWidget {
 }
 
 class _ScanReceiptScreenState extends ConsumerState<ScanReceiptScreen> {
-  final _picker = ImagePicker();
-
   bool _busy = false;
   String? _error;
   ReceiptDraft? _draft;
@@ -42,78 +37,45 @@ class _ScanReceiptScreenState extends ConsumerState<ScanReceiptScreen> {
   String? _walletId;
 
   Future<void> _pick(ImageSource source) async {
-    final apiKey = await ref.read(apiKeyStoreProvider).read();
-    if (!mounted) return;
-
-    if (apiKey == null) {
-      await Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => const ApiKeyScreen()),
-      );
-      return;
-    }
-
-    final picked = await _picker.pickImage(
-      source: source,
-      // Struk itu tinggi dan sempit; sisi terpanjang 1600 px sudah cukup
-      // untuk membaca angka, dan jauh lebih hemat kuota daripada foto
-      // penuh 12 megapiksel.
-      maxWidth: 1600,
-      maxHeight: 1600,
-      imageQuality: 90,
-    );
-    if (picked == null || !mounted) return;
-
     setState(() {
       _busy = true;
       _error = null;
-      _photoPath = picked.path;
     });
 
-    try {
-      final bytes = await _compress(picked.path);
-      final draft = await ref.read(receiptScannerProvider).scan(
-            imageBytes: bytes,
-            apiKey: apiKey,
-          );
+    final navigator = Navigator.of(context);
 
+    try {
+      final captured = await ref.read(receiptCaptureProvider).capture(source);
       if (!mounted) return;
+
       setState(() {
-        _draft = draft;
         _busy = false;
+        if (captured != null) {
+          _draft = captured.draft;
+          _photoPath = captured.photoPath;
+        }
       });
+    } on MissingApiKeyException {
+      if (!mounted) return;
+      setState(() => _busy = false);
+      await navigator.push(
+        MaterialPageRoute<void>(builder: (_) => const ApiKeyScreen()),
+      );
     } on ReceiptScanException catch (error) {
-      if (!mounted) return;
-      setState(() {
-        _error = error.message;
-        _busy = false;
-      });
+      _fail(error.message);
     } on ReceiptParseException catch (error) {
-      if (!mounted) return;
-      setState(() {
-        _error = error.message;
-        _busy = false;
-      });
+      _fail(error.message);
     } catch (error) {
-      if (!mounted) return;
-      setState(() {
-        _error = 'Gagal membaca struk: $error';
-        _busy = false;
-      });
+      _fail('Gagal membaca struk: $error');
     }
   }
 
-  /// Memampatkan foto sebelum dikirim.
-  ///
-  /// Menghemat kuota dan waktu unggah. Kalau pemampatan gagal, foto asli
-  /// tetap dikirim — lebih baik boros sedikit daripada gagal sama sekali.
-  Future<Uint8List> _compress(String path) async {
-    final compressed = await FlutterImageCompress.compressWithFile(
-      path,
-      minWidth: 1000,
-      minHeight: 1000,
-      quality: 80,
-    );
-    return compressed ?? await File(path).readAsBytes();
+  void _fail(String message) {
+    if (!mounted) return;
+    setState(() {
+      _error = message;
+      _busy = false;
+    });
   }
 
   Future<void> _save() async {

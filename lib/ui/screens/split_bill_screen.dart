@@ -13,13 +13,18 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:chacing/data/database.dart';
+import 'package:chacing/data/gemini_client.dart';
+import 'package:chacing/data/receipt_capture.dart';
 import 'package:chacing/data/repositories/transaction_repository.dart';
+import 'package:chacing/domain/receipt_draft.dart';
 import 'package:chacing/domain/split_calculator.dart';
 import 'package:chacing/providers.dart';
 import 'package:chacing/ui/format.dart';
+import 'package:chacing/ui/screens/api_key_screen.dart';
 
 /// Satu baris tagihan yang sedang disusun, beserta siapa yang menikmatinya.
 class _ItemDraft {
@@ -44,6 +49,8 @@ class SplitBillScreen extends ConsumerStatefulWidget {
 }
 
 class _SplitBillScreenState extends ConsumerState<SplitBillScreen> {
+  static const _uuid = Uuid();
+
   final _merchantController = TextEditingController();
   final List<_ItemDraft> _items = [];
 
@@ -53,8 +60,10 @@ class _SplitBillScreenState extends ConsumerState<SplitBillScreen> {
   String? _payerId;
   String? _walletId;
   String? _categoryId;
-  final DateTime _date = DateTime.now();
+  DateTime _date = DateTime.now();
+  String? _photoPath;
   bool _saving = false;
+  bool _scanning = false;
 
   @override
   void dispose() {
@@ -117,6 +126,113 @@ class _SplitBillScreenState extends ConsumerState<SplitBillScreen> {
     );
   }
 
+  /// Memfoto struk lalu mengisi daftar item dari hasil bacaannya.
+  ///
+  /// Item yang masuk sengaja belum ditugaskan ke siapa pun. Menebak siapa
+  /// makan apa adalah satu-satunya bagian yang tidak bisa dibaca dari
+  /// struk, dan menebaknya asal justru menghasilkan tagihan yang salah
+  /// tanpa ada yang memeriksa.
+  Future<void> _scanReceipt(ImageSource source) async {
+    if (_scanning) return;
+    setState(() => _scanning = true);
+
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+
+    try {
+      final captured = await ref.read(receiptCaptureProvider).capture(source);
+      if (captured == null || !mounted) {
+        if (mounted) setState(() => _scanning = false);
+        return;
+      }
+
+      final draft = captured.draft;
+      setState(() {
+        _scanning = false;
+        _photoPath = captured.photoPath;
+
+        // Item hasil pindai menggantikan daftar, bukan menambah, supaya
+        // memindai ulang struk yang sama tidak menghasilkan dua salinan.
+        _items
+          ..clear()
+          ..addAll(
+            draft.items.map(
+              (item) => _ItemDraft(
+                id: _uuid.v4(),
+                name: item.name,
+                amount: item.total,
+              ),
+            ),
+          );
+
+        _tax = draft.tax;
+        _serviceCharge = draft.serviceCharge;
+        _discount = draft.discount;
+        if (draft.merchant != null && _merchantController.text.trim().isEmpty) {
+          _merchantController.text = draft.merchant!;
+        }
+        if (draft.occurredAt != null) _date = draft.occurredAt!;
+      });
+
+      for (final warning in draft.warnings) {
+        messenger.showSnackBar(SnackBar(content: Text(warning)));
+      }
+      if (draft.items.isNotEmpty) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(
+              '${draft.items.length} item terbaca. '
+              'Ketuk tiap item untuk menandai siapa yang menikmatinya.',
+            ),
+          ),
+        );
+      }
+    } on MissingApiKeyException {
+      if (!mounted) return;
+      setState(() => _scanning = false);
+      await navigator.push(
+        MaterialPageRoute<void>(builder: (_) => const ApiKeyScreen()),
+      );
+    } on ReceiptScanException catch (error) {
+      _failScan(messenger, error.message);
+    } on ReceiptParseException catch (error) {
+      _failScan(messenger, error.message);
+    } catch (error) {
+      _failScan(messenger, 'Gagal membaca struk: $error');
+    }
+  }
+
+  void _failScan(ScaffoldMessengerState messenger, String message) {
+    if (!mounted) return;
+    setState(() => _scanning = false);
+    messenger.showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<void> _pickScanSource() async {
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_camera_outlined),
+              title: const Text('Ambil foto'),
+              onTap: () => Navigator.of(sheetContext).pop(ImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: const Text('Pilih dari galeri'),
+              onTap: () => Navigator.of(sheetContext).pop(ImageSource.gallery),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (source != null) await _scanReceipt(source);
+  }
+
   Future<void> _editItem({_ItemDraft? existing}) async {
     final people = ref.read(peopleProvider).value ?? const <Person>[];
     final result = await showModalBottomSheet<_ItemDraft>(
@@ -163,6 +279,13 @@ class _SplitBillScreenState extends ConsumerState<SplitBillScreen> {
                   : _merchantController.text.trim(),
               occurredAt: _date,
               total: _billTotal,
+              // Struk yang dipindai disimpan bersama fotonya, dan
+              // sumbernya ditandai supaya bisa dibedakan dari yang
+              // diketik manual.
+              source: _photoPath == null
+                  ? TransactionSource.manual
+                  : TransactionSource.ocrReceipt,
+              receiptPhotoPath: _photoPath,
               tax: _tax,
               serviceCharge: _serviceCharge,
               discount: _discount,
@@ -221,18 +344,35 @@ class _SplitBillScreenState extends ConsumerState<SplitBillScreen> {
           const SizedBox(height: 20),
           _SectionHeader(
             title: 'Item',
-            action: TextButton.icon(
-              onPressed: () => _editItem(),
-              icon: const Icon(Icons.add, size: 18),
-              label: const Text('Tambah'),
+            action: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextButton.icon(
+                  onPressed: _scanning ? null : _pickScanSource,
+                  icon: _scanning
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.document_scanner_outlined, size: 18),
+                  label: Text(_scanning ? 'Membaca…' : 'Scan'),
+                ),
+                TextButton.icon(
+                  onPressed: () => _editItem(),
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const Text('Tambah'),
+                ),
+              ],
             ),
           ),
           if (_items.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 12),
               child: Text(
-                'Belum ada item. Tambahkan tiap pesanan, lalu tandai '
-                'siapa yang menikmatinya.',
+                'Belum ada item. Foto struknya lewat Scan, atau tambahkan '
+                'tiap pesanan sendiri — lalu tandai siapa yang '
+                'menikmatinya.',
                 style: theme.textTheme.bodySmall,
               ),
             )

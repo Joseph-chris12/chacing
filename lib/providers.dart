@@ -12,6 +12,7 @@ import 'package:chacing/data/backup.dart';
 import 'package:chacing/data/api_key_store.dart';
 import 'package:chacing/data/connection.dart';
 import 'package:chacing/data/gemini_client.dart';
+import 'package:chacing/data/receipt_capture.dart';
 import 'package:chacing/data/settings_store.dart';
 import 'package:chacing/data/database.dart';
 import 'package:chacing/data/repositories/budget_repository.dart';
@@ -317,4 +318,12 @@ class ThemeModeController extends StateNotifier<ThemeMode> {
 final themeModeProvider =
     StateNotifierProvider<ThemeModeController, ThemeMode>(
   (ref) => ThemeModeController(ref.watch(settingsStoreProvider)),
+);
+
+/// Pengambil dan pembaca foto struk, dipakai layar scan maupun bagi tagihan.
+final receiptCaptureProvider = Provider<ReceiptCapture>(
+  (ref) => ReceiptCapture(
+    keyStore: ref.watch(apiKeyStoreProvider),
+    scanner: ref.watch(receiptScannerProvider),
+  ),
 );
