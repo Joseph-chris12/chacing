@@ -83,7 +83,7 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
             enableSuggestions: false,
             decoration: InputDecoration(
               labelText: 'Kunci API Gemini',
-              hintText: 'AIza…',
+              hintText: 'AQ.Ab…',
               suffixIcon: IconButton(
                 icon: Icon(
                   _obscured ? Icons.visibility_off : Icons.visibility,
@@ -107,6 +107,9 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
             '1. Buka aistudio.google.com dengan akun Google-mu.\n'
             '2. Pilih "Get API key", lalu buat kunci baru.\n'
             '3. Salin kuncinya dan tempel di kolom atas.\n\n'
+            'Kunci baru dari AI Studio berawalan "AQ.Ab". Yang '
+            'berawalan "AIza" sudah tidak dilayani Google sejak '
+            'September 2026.\n\n'
             'Kuotanya cukup untuk memindai beberapa struk sehari.',
             style: theme.textTheme.bodySmall,
           ),
