@@ -31,4 +31,26 @@ void main() {
     SharedPreferences.setMockInitialValues({'theme_mode': 'sepia'});
     expect(store.read(), completion(ThemeMode.light));
   });
+
+  group('model pembaca struk', () {
+    test('kosong berarti pakai bawaan', () async {
+      expect(await store.readScanModel(), isNull);
+    });
+
+    test('nama model tersimpan terbaca kembali', () async {
+      await store.writeScanModel('gemini-3.6-flash');
+      expect(await store.readScanModel(), 'gemini-3.6-flash');
+    });
+
+    test('spasi di sekelilingnya dibuang', () async {
+      await store.writeScanModel('  gemini-3.6-flash  ');
+      expect(await store.readScanModel(), 'gemini-3.6-flash');
+    });
+
+    test('dikosongkan kembali berarti kembali ke bawaan', () async {
+      await store.writeScanModel('gemini-3.6-flash');
+      await store.writeScanModel('   ');
+      expect(await store.readScanModel(), isNull);
+    });
+  });
 }

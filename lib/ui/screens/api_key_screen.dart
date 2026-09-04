@@ -8,6 +8,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:chacing/data/gemini_client.dart';
 import 'package:chacing/providers.dart';
 
 class ApiKeyScreen extends ConsumerStatefulWidget {
@@ -19,12 +20,30 @@ class ApiKeyScreen extends ConsumerStatefulWidget {
 
 class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
   final _controller = TextEditingController();
+  final _modelController = TextEditingController();
   bool _obscured = true;
   bool _saving = false;
+  bool _loadedModel = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadModel();
+  }
+
+  Future<void> _loadModel() async {
+    final stored = await ref.read(settingsStoreProvider).readScanModel();
+    if (!mounted) return;
+    setState(() {
+      _modelController.text = stored ?? '';
+      _loadedModel = true;
+    });
+  }
 
   @override
   void dispose() {
     _controller.dispose();
+    _modelController.dispose();
     super.dispose();
   }
 
@@ -36,6 +55,9 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
     final navigator = Navigator.of(context);
 
     await ref.read(apiKeyStoreProvider).write(key);
+    await ref
+        .read(settingsStoreProvider)
+        .writeScanModel(_modelController.text);
     ref.invalidate(hasApiKeyProvider);
 
     if (mounted) navigator.pop(true);
@@ -99,6 +121,30 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
               onPressed: _saving ? null : _save,
               child: Text(_saving ? 'Menyimpan…' : 'Simpan kunci'),
             ),
+          ),
+          const SizedBox(height: 28),
+          Text('Model yang dipakai', style: theme.textTheme.titleSmall),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _modelController,
+            autocorrect: false,
+            enableSuggestions: false,
+            enabled: _loadedModel,
+            decoration: InputDecoration(
+              labelText: 'Nama model',
+              hintText: GeminiReceiptScanner.defaultModel,
+              helperText: 'Kosongkan untuk memakai '
+                  '${GeminiReceiptScanner.defaultModel}',
+              helperMaxLines: 2,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Google menghentikan model lama untuk akun baru tanpa mengubah '
+            'dokumentasinya lebih dulu. Kalau scan gagal dengan kode 404, '
+            'pesannya biasanya menyebut nama model penggantinya — tulis di '
+            'sini, tanpa perlu memperbarui aplikasi.',
+            style: theme.textTheme.bodySmall,
           ),
           const SizedBox(height: 28),
           Text('Cara mendapatkannya', style: theme.textTheme.titleSmall),

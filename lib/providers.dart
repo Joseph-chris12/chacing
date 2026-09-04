@@ -325,5 +325,6 @@ final receiptCaptureProvider = Provider<ReceiptCapture>(
   (ref) => ReceiptCapture(
     keyStore: ref.watch(apiKeyStoreProvider),
     scanner: ref.watch(receiptScannerProvider),
+    settings: ref.watch(settingsStoreProvider),
   ),
 );

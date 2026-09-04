@@ -32,7 +32,15 @@ class GeminiReceiptScanner {
   final http.Client _client;
   final ReceiptParser _parser;
 
-  static const _model = 'gemini-2.5-flash';
+  /// Model bawaan.
+  ///
+  /// Nama model punya masa pakai. Google menghentikan akses ke model
+  /// lama untuk akun baru tanpa mengubah dokumentasinya lebih dulu, dan
+  /// gagalnya muncul sebagai 404 yang tidak jelas hubungannya dengan
+  /// model. Karena itu nilainya bisa ditimpa lewat Pengaturan — supaya
+  /// penggantian berikutnya tidak perlu menunggu aplikasi dibangun ulang.
+  static const defaultModel = 'gemini-3.6-flash';
+
   static const _endpoint =
       'https://generativelanguage.googleapis.com/v1beta/models';
 
@@ -72,9 +80,13 @@ Rules:
   Future<ReceiptDraft> scan({
     required Uint8List imageBytes,
     required String apiKey,
+    String? model,
     String mimeType = 'image/jpeg',
   }) async {
-    final uri = Uri.parse('$_endpoint/$_model:generateContent');
+    final chosen = (model == null || model.trim().isEmpty)
+        ? defaultModel
+        : model.trim();
+    final uri = Uri.parse('$_endpoint/$chosen:generateContent');
 
     late final http.Response response;
     try {
@@ -136,6 +148,13 @@ Rules:
           'Periksa kuncinya di Pengaturan, dan pastikan Gemini API sudah '
           'aktif untuk akun itu serta kuncinya tidak dibatasi ke aplikasi '
           'atau domain tertentu.',
+        );
+      }
+      if (response.statusCode == 404) {
+        throw ReceiptScanException(
+          'Model "$chosen" tidak tersedia untuk akunmu.$suffix'
+          '\n\nGanti nama modelnya di Pengaturan sesuai yang '
+          'disebut pesan di atas.',
         );
       }
       throw ReceiptScanException(

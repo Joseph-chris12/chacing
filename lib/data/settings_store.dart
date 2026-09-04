@@ -14,6 +14,7 @@ class SettingsStore {
   const SettingsStore();
 
   static const _themeKey = 'theme_mode';
+  static const _modelKey = 'scan_model';
 
   /// Bawaan aplikasi adalah terang.
   ///
@@ -41,5 +42,27 @@ class SettingsStore {
       'system' => ThemeMode.system,
       _ => defaultMode,
     };
+  }
+
+  /// Nama model pembaca struk.
+  ///
+  /// Bisa diganti tanpa membangun ulang aplikasi. Nama model punya masa
+  /// pakai, dan yang lama berhenti dilayani untuk akun baru tanpa
+  /// pemberitahuan — kalau nilainya tertanam di kode, satu-satunya jalan
+  /// keluar adalah menunggu versi berikutnya.
+  Future<String?> readScanModel() async {
+    final prefs = await SharedPreferences.getInstance();
+    final value = prefs.getString(_modelKey);
+    if (value == null || value.trim().isEmpty) return null;
+    return value.trim();
+  }
+
+  Future<void> writeScanModel(String? model) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (model == null || model.trim().isEmpty) {
+      await prefs.remove(_modelKey);
+      return;
+    }
+    await prefs.setString(_modelKey, model.trim());
   }
 }

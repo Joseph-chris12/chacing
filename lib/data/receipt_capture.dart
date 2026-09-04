@@ -14,6 +14,7 @@ import 'package:image_picker/image_picker.dart';
 
 import 'package:chacing/data/api_key_store.dart';
 import 'package:chacing/data/gemini_client.dart';
+import 'package:chacing/data/settings_store.dart';
 import 'package:chacing/domain/receipt_draft.dart';
 
 /// Kunci API belum dipasang.
@@ -36,14 +37,18 @@ class ReceiptCapture {
   ReceiptCapture({
     required ApiKeyStore keyStore,
     required GeminiReceiptScanner scanner,
+    required SettingsStore settings,
     ImagePicker? picker,
   })  : _keyStore = keyStore,
         _scanner = scanner,
+        _settings = settings,
         _picker = picker ?? ImagePicker();
 
   final ApiKeyStore _keyStore;
 
   final GeminiReceiptScanner _scanner;
+
+  final SettingsStore _settings;
 
   final ImagePicker _picker;
 
@@ -71,6 +76,7 @@ class ReceiptCapture {
     final draft = await _scanner.scan(
       imageBytes: await _compress(picked.path),
       apiKey: apiKey,
+      model: await _settings.readScanModel(),
     );
 
     return (draft: draft, photoPath: picked.path);
