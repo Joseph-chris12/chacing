@@ -30,6 +30,7 @@ class BackupContents {
     required this.assignments,
     required this.payments,
     required this.budgets,
+    this.fixedBills = 0,
   });
 
   final DateTime? exportedAt;
@@ -41,6 +42,9 @@ class BackupContents {
   final int assignments;
   final int payments;
   final int budgets;
+
+  /// Nol untuk cadangan dari sebelum ada tagihan tetap.
+  final int fixedBills;
 }
 
 /// File cadangan yang tidak bisa dipakai. Pesannya ditulis untuk pengguna,
@@ -83,6 +87,7 @@ class BackupService {
       'assignments': await _rows(_db.assignments),
       'payments': await _rows(_db.payments),
       'budgets': await _rows(_db.budgets),
+      'fixedBills': await _rows(_db.fixedBills),
     };
 
     return const JsonEncoder.withIndent('  ').convert(payload);
@@ -125,6 +130,7 @@ class BackupService {
       assignments: _listOf(map, 'assignments').length,
       payments: _listOf(map, 'payments').length,
       budgets: _listOf(map, 'budgets').length,
+      fixedBills: _listOf(map, 'fixedBills').length,
     );
   }
 
@@ -142,6 +148,9 @@ class BackupService {
     await _db.transaction(() async {
       // Urutan hapus mengikuti arah foreign key. Transaksi lebih dulu
       // karena anak-anaknya ikut terhapus lewat cascade.
+      // Tagihan tetap paling dulu: ia menunjuk ke dompet dan kategori,
+      // dan foreign key-nya akan menolak penghapusan keduanya.
+      await _db.delete(_db.fixedBills).go();
       await _db.delete(_db.transactions).go();
       await _db.delete(_db.budgets).go();
       await _db.delete(_db.categories).go();
@@ -167,6 +176,9 @@ class BackupService {
       );
       await _insertAll(map, 'payments', _db.payments, Payment.fromJson);
       await _insertAll(map, 'budgets', _db.budgets, Budget.fromJson);
+      // Cadangan dari sebelum schemaVersion 2 tidak punya bagian ini, dan
+      // `_listOf` mengembalikan daftar kosong untuk bagian yang tidak ada.
+      await _insertAll(map, 'fixedBills', _db.fixedBills, FixedBill.fromJson);
     });
   }
 

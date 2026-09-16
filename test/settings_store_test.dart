@@ -53,4 +53,24 @@ void main() {
       expect(await store.readScanModel(), isNull);
     });
   });
+
+  group('kartu utama beranda', () {
+    test('bawaannya sisa budget, supaya beranda tidak berubah sendiri',
+        () async {
+      expect(await store.readHomeFocus(), HomeFocus.budget);
+    });
+
+    test('pilihan saldo tersimpan dan terbaca kembali', () async {
+      await store.writeHomeFocus(HomeFocus.balance);
+      expect(await store.readHomeFocus(), HomeFocus.balance);
+
+      await store.writeHomeFocus(HomeFocus.budget);
+      expect(await store.readHomeFocus(), HomeFocus.budget);
+    });
+
+    test('nilai yang tidak dikenal jatuh ke bawaan', () {
+      SharedPreferences.setMockInitialValues({'home_focus': 'grafik'});
+      expect(store.readHomeFocus(), completion(HomeFocus.budget));
+    });
+  });
 }

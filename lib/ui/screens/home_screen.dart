@@ -16,12 +16,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:chacing/data/database.dart';
+import 'package:chacing/data/settings_store.dart';
 import 'package:chacing/domain/budget_period.dart';
 import 'package:chacing/providers.dart';
 import 'package:chacing/ui/screens/budget_settings_screen.dart';
 import 'package:chacing/ui/screens/quick_entry_screen.dart';
 import 'package:chacing/ui/screens/search_screen.dart';
+import 'package:chacing/ui/screens/wallets_screen.dart';
+import 'package:chacing/ui/widgets/balance_summary.dart';
+import 'package:chacing/ui/widgets/add_money_sheet.dart';
 import 'package:chacing/ui/widgets/budget_summary.dart';
+import 'package:chacing/ui/widgets/due_bills_card.dart';
 import 'package:chacing/ui/widgets/period_navigator.dart';
 import 'package:chacing/ui/widgets/spending_bar_chart.dart';
 import 'package:chacing/ui/widgets/transaction_list.dart';
@@ -29,7 +34,18 @@ import 'package:chacing/ui/widgets/transaction_list.dart';
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
-  Future<void> _openEntry(BuildContext context, {Transaction? existing}) async {
+  Future<void> _openEntry(
+    BuildContext context,
+    WidgetRef ref, {
+    Transaction? existing,
+  }) async {
+    // Uang masuk punya lembarnya sendiri. Membukanya di layar catat
+    // pengeluaran akan menampilkan nominal negatif dan menyimpannya
+    // kembali sebagai belanja.
+    if (existing?.source == TransactionSource.income) {
+      return openAddMoney(context, ref, existing: existing);
+    }
+
     final saved = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
         builder: (_) => QuickEntryScreen(existing: existing),
@@ -77,17 +93,26 @@ class HomeScreen extends ConsumerWidget {
     final daily = ref.watch(dailySpendingProvider);
     final transactions = ref.watch(periodTransactionsProvider);
     final categories = ref.watch(categoriesProvider).value ?? const <Category>[];
+    final showBalance = ref.watch(homeFocusProvider) == HomeFocus.balance;
 
     final header = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const PeriodNavigator(),
-        BudgetSummary(
-          status: status,
-          onTap: () => Navigator.of(context).push<bool>(
-            MaterialPageRoute(builder: (_) => const BudgetSettingsScreen()),
+        const DueBillsCard(),
+        if (showBalance)
+          BalanceSummary(
+            onTap: () => Navigator.of(context).push<void>(
+              MaterialPageRoute(builder: (_) => const WalletsScreen()),
+            ),
+          )
+        else
+          BudgetSummary(
+            status: status,
+            onTap: () => Navigator.of(context).push<bool>(
+              MaterialPageRoute(builder: (_) => const BudgetSettingsScreen()),
+            ),
           ),
-        ),
         const Divider(height: 20),
         _SectionTitle(
           title: status.range.kind == PeriodKind.day
@@ -104,7 +129,10 @@ class HomeScreen extends ConsumerWidget {
             ),
             data: (days) => SpendingBarChart(
               days: days,
-              idealDailyPace: status.idealDailyPace,
+              // Di mode saldo tidak ada batas harian yang perlu ditandai.
+              // Batang merah untuk budget yang tidak ditampilkan hanya
+              // akan membingungkan.
+              idealDailyPace: showBalance ? 0 : status.idealDailyPace,
             ),
           ),
         ),
@@ -116,6 +144,11 @@ class HomeScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Chacing'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.savings_outlined),
+            tooltip: 'Tambah uang',
+            onPressed: () => openAddMoney(context, ref),
+          ),
           IconButton(
             icon: const Icon(Icons.search),
             tooltip: 'Cari transaksi',
@@ -132,12 +165,12 @@ class HomeScreen extends ConsumerWidget {
           transactions: rows,
           categories: categories,
           header: header,
-          onEdit: (row) => _openEntry(context, existing: row),
+          onEdit: (row) => _openEntry(context, ref, existing: row),
           onDelete: (row) => _delete(context, ref, row),
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _openEntry(context),
+        onPressed: () => _openEntry(context, ref),
         icon: const Icon(Icons.add),
         label: const Text('Catat'),
       ),

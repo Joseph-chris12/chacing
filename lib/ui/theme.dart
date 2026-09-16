@@ -38,6 +38,15 @@ const _danger = Color(0xFFB3261E);
 
 const _ink = Color(0xFF1C1917);
 
+/// Warna untuk uang yang masuk ke dompet.
+///
+/// Hijau, satu-satunya warna di luar keluarga merah muda dan merah. Uang
+/// masuk harus langsung terbaca berbeda dari pengeluaran — dan merah di
+/// aplikasi ini sudah berarti "budget jebol".
+Color moneyInColor(Brightness brightness) => brightness == Brightness.dark
+    ? const Color(0xFF86EFAC)
+    : const Color(0xFF15803D);
+
 ThemeData buildLightTheme() {
   final scheme = ColorScheme.fromSeed(
     seedColor: _rose,

@@ -678,6 +678,66 @@ class TransactionRepository {
     return row?.name ?? 'dompet lain';
   }
 
+  // ------------------------------------------------------------- uang masuk
+
+  /// Mencatat uang masuk ke dompet: gaji, uang saku, kiriman, bonus.
+  ///
+  /// Disimpan sebagai nominal negatif yang dikecualikan dari budget, sama
+  /// seperti sisi masuk pindah dana. Dengan begitu saldo dompet naik lewat
+  /// rumus yang sudah ada, dan tidak satu pun ringkasan pengeluaran perlu
+  /// tahu bahwa pemasukan itu ada.
+  ///
+  /// [amount] selalu positif dari sisi pemanggil — tanda negatifnya urusan
+  /// penyimpanan, bukan urusan layar. Memberikan [id] berarti menyunting.
+  Future<String> recordIncome({
+    String? id,
+    required String walletId,
+    required int amount,
+    required String name,
+    DateTime? occurredAt,
+    String? note,
+  }) async {
+    if (amount <= 0) {
+      throw ArgumentError.value(amount, 'amount', 'harus lebih dari nol');
+    }
+
+    final now = DateTime.now();
+    final txId = id ?? _uuid.v4();
+    final trimmed = name.trim();
+
+    await _db.transaction(() async {
+      // Sama seperti `save`: createdAt tidak boleh absent saat menyunting,
+      // karena upsert tetap menyusun baris INSERT yang lengkap.
+      var createdAt = now;
+      if (id != null) {
+        final existing = await findById(id);
+        if (existing != null) createdAt = existing.createdAt;
+      }
+
+      await _db.into(_db.transactions).insertOnConflictUpdate(
+            TransactionsCompanion(
+              id: Value(txId),
+              walletId: Value(walletId),
+              categoryId: const Value(null),
+              merchant: Value(trimmed.isEmpty ? 'Uang masuk' : trimmed),
+              occurredAt: Value(occurredAt ?? now),
+              subtotal: Value(-amount),
+              total: Value(-amount),
+              ownShare: Value(-amount),
+              source: const Value(TransactionSource.income),
+              note: Value(note),
+              excludeFromBudget: const Value(true),
+              createdAt: Value(createdAt),
+              updatedAt: Value(now),
+              deletedAt: const Value(null),
+              isDirty: const Value(true),
+            ),
+          );
+    });
+
+    return txId;
+  }
+
   // ------------------------------------------------------------------- tren
 
   /// Pengeluaran per bulan kalender, bulan terlama lebih dulu.

@@ -54,6 +54,40 @@ class WalletRepository {
     return id;
   }
 
+  /// Menyetel saldo dompet supaya sama dengan isi sebenarnya sekarang.
+  ///
+  /// Yang diubah adalah saldo awal, bukan transaksi. Saldo dihitung sebagai
+  /// `saldo awal − jumlah seluruh transaksi`, jadi saldo awal diatur ulang
+  /// menjadi [balance] ditambah semua yang sudah tercatat. Riwayat transaksi
+  /// tetap utuh, dan pengeluaran berikutnya langsung mengurangi angka yang
+  /// baru disetel.
+  ///
+  /// Dipakai untuk memulai: dompet baru selalu mulai dari nol, padahal
+  /// isinya jarang benar-benar nol saat aplikasi pertama dipasang.
+  Future<void> setBalance(String walletId, int balance) async {
+    await _db.transaction(() async {
+      final row = await _db.customSelect(
+        '''
+        SELECT COALESCE(SUM(total), 0) AS recorded
+        FROM transactions
+        WHERE wallet_id = ? AND deleted_at IS NULL
+        ''',
+        variables: [Variable.withString(walletId)],
+        readsFrom: {_db.transactions},
+      ).getSingle();
+
+      final now = DateTime.now();
+      await (_db.update(_db.wallets)..where((w) => w.id.equals(walletId)))
+          .write(
+        WalletsCompanion(
+          initialBalance: Value(balance + row.read<int>('recorded')),
+          updatedAt: Value(now),
+          isDirty: const Value(true),
+        ),
+      );
+    });
+  }
+
   /// Dompet diarsipkan, bukan dihapus. Transaksi lama tetap menunjuk
   /// ke sini dan harus tetap bisa menampilkan namanya.
   Future<void> archive(String id) async {

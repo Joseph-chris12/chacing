@@ -1,8 +1,9 @@
 /// Ringkasan pengeluaran per kategori.
 ///
-/// Batangnya sengaja dibuat dari `Container` biasa, bukan pustaka grafik.
-/// Yang dibutuhkan cuma perbandingan panjang antar kategori, dan itu tidak
-/// sepadan dengan menambah pustaka grafik ke dalam MVP.
+/// Donat di atas menjawab "sebagian besar uangku habis ke mana" sekilas.
+/// Daftar batang di bawahnya memberi angka pasti dan sekaligus berfungsi
+/// sebagai keterangan warna donat — nama kategori selalu tertulis, jadi
+/// tidak ada potongan yang hanya bisa dikenali dari warnanya.
 library;
 
 import 'package:flutter/material.dart';
@@ -14,6 +15,7 @@ import 'package:chacing/providers.dart';
 import 'package:chacing/ui/category_colors.dart';
 import 'package:chacing/ui/category_icons.dart';
 import 'package:chacing/ui/format.dart';
+import 'package:chacing/ui/widgets/category_donut.dart';
 import 'package:chacing/ui/widgets/period_navigator.dart';
 
 class SummaryScreen extends ConsumerWidget {
@@ -22,7 +24,9 @@ class SummaryScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final spending = ref.watch(categorySpendingProvider);
-    final categories = ref.watch(categoriesProvider).value ?? const <Category>[];
+    final categories =
+        ref.watch(categoriesProvider).value ?? const <Category>[];
+    final period = ref.watch(currentPeriodProvider).kind;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Ringkasan')),
@@ -40,6 +44,7 @@ class SummaryScreen extends ConsumerWidget {
               data: (rows) => _CategoryBars(
                 spending: rows,
                 categories: categories,
+                thisPeriod: period.thisPeriod,
               ),
             ),
           ),
@@ -50,10 +55,17 @@ class SummaryScreen extends ConsumerWidget {
 }
 
 class _CategoryBars extends StatelessWidget {
-  const _CategoryBars({required this.spending, required this.categories});
+  const _CategoryBars({
+    required this.spending,
+    required this.categories,
+    required this.thisPeriod,
+  });
 
   final List<CategorySpending> spending;
   final List<Category> categories;
+
+  /// "minggu ini", "bulan ini", atau "hari ini", mengikuti pilihan budget.
+  final String thisPeriod;
 
   @override
   Widget build(BuildContext context) {
@@ -62,11 +74,11 @@ class _CategoryBars extends StatelessWidget {
     final rows = spending.where((s) => s.total > 0).toList();
 
     if (rows.isEmpty) {
-      return const Center(
+      return Center(
         child: Padding(
-          padding: EdgeInsets.all(32),
+          padding: const EdgeInsets.all(32),
           child: Text(
-            'Belum ada pengeluaran di minggu ini.',
+            'Belum ada pengeluaran $thisPeriod.',
             textAlign: TextAlign.center,
           ),
         ),
@@ -78,12 +90,59 @@ class _CategoryBars extends StatelessWidget {
     // total, semua batang jadi pendek dan perbandingannya justru hilang.
     final largest = rows.first.total;
     final byId = {for (final category in categories) category.id: category};
+    final brightness = Theme.of(context).brightness;
+
+    Color colorOf(CategorySpending row) {
+      final category = byId[row.categoryId];
+      return categoryColor(
+        stored: category?.colorValue,
+        // Transaksi tanpa kategori tetap butuh warna yang tetap.
+        seed: category?.id ?? 'tanpa-kategori',
+        brightness: brightness,
+      );
+    }
+
+    final slices = foldDonutSlices(
+      [
+        for (final row in rows)
+          DonutSlice(
+            label: row.categoryName,
+            amount: row.total,
+            color: colorOf(row),
+          ),
+      ],
+      // Abu netral, bukan warna palet: "kategori lain" bukan kategori,
+      // dan tidak boleh terlihat seperti salah satunya.
+      otherColor: Theme.of(context).colorScheme.outline,
+    );
+    final folded = rows.length > maxDonutSlices;
 
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
       itemCount: rows.length + 1,
       itemBuilder: (context, index) {
-        if (index == 0) return _TotalHeader(total: total);
+        if (index == 0) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 20),
+            child: Column(
+              children: [
+                CategoryDonut(slices: slices, totalLabel: 'Total $thisPeriod'),
+                const SizedBox(height: 4),
+                Text(
+                  folded
+                      ? 'Ketuk potongan untuk melihat angkanya. '
+                            '${rows.length - (maxDonutSlices - 1)} kategori '
+                            'terkecil digabung.'
+                      : 'Ketuk potongan untuk melihat angkanya.',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
 
         final row = rows[index - 1];
         final category = byId[row.categoryId];
@@ -92,44 +151,11 @@ class _CategoryBars extends StatelessWidget {
           name: row.categoryName,
           amount: row.total,
           icon: categoryIcon(category?.icon),
-          color: categoryColor(
-            stored: category?.colorValue,
-            // Transaksi tanpa kategori tetap butuh warna yang tetap.
-            seed: category?.id ?? 'tanpa-kategori',
-            brightness: Theme.of(context).brightness,
-          ),
+          color: colorOf(row),
           fraction: largest == 0 ? 0 : row.total / largest,
           share: total == 0 ? 0 : row.total / total,
         );
       },
-    );
-  }
-}
-
-class _TotalHeader extends StatelessWidget {
-  const _TotalHeader({required this.total});
-
-  final int total;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Total minggu ini', style: theme.textTheme.labelLarge),
-          const SizedBox(height: 4),
-          Text(
-            formatRupiah(total),
-            style: theme.textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

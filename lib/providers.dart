@@ -17,6 +17,7 @@ import 'package:chacing/data/settings_store.dart';
 import 'package:chacing/data/database.dart';
 import 'package:chacing/data/repositories/budget_repository.dart';
 import 'package:chacing/data/repositories/category_repository.dart';
+import 'package:chacing/data/repositories/fixed_bill_repository.dart';
 import 'package:chacing/data/repositories/person_repository.dart';
 import 'package:chacing/data/repositories/transaction_repository.dart';
 import 'package:chacing/data/repositories/wallet_repository.dart';
@@ -199,6 +200,48 @@ final walletBalancesProvider = StreamProvider<Map<String, int>>(
   (ref) => ref.watch(transactionRepositoryProvider).watchWalletBalances(),
 );
 
+/// Total saldo seluruh dompet yang masih aktif.
+///
+/// Dompet yang diarsipkan tidak ikut. Mengarsipkan berarti "sudah tidak
+/// kupakai", dan sisa angkanya — sering kali nol atau sisa receh — hanya
+/// akan membuat total terlihat keliru.
+final totalBalanceProvider = Provider<int>((ref) {
+  final wallets = ref.watch(walletsProvider).value ?? const <Wallet>[];
+  final balances = ref.watch(walletBalancesProvider).value ?? const {};
+  return wallets.fold<int>(0, (sum, w) => sum + (balances[w.id] ?? 0));
+});
+
+// ---------------------------------------------------------- tagihan tetap
+
+final fixedBillRepositoryProvider = Provider<FixedBillRepository>(
+  (ref) => FixedBillRepository(
+    ref.watch(databaseProvider),
+    ref.watch(transactionRepositoryProvider),
+  ),
+);
+
+/// Semua tagihan tetap yang aktif, urut tanggal jatuh tempo.
+final fixedBillsProvider = StreamProvider<List<FixedBillView>>(
+  (ref) => ref.watch(fixedBillRepositoryProvider).watchActive(),
+);
+
+/// Tagihan yang perlu diperhatikan sekarang: lewat, hari ini, atau
+/// sebentar lagi — dan belum dibayar. Yang paling mendesak lebih dulu.
+final billsNeedingAttentionProvider = Provider<List<FixedBillView>>((ref) {
+  final now = DateTime.now();
+  final bills = ref.watch(fixedBillsProvider).value ?? const [];
+
+  return [
+    for (final view in bills)
+      if (view.schedule(now: now).status.needsAttention) view,
+  ]..sort(
+      (a, b) => a
+          .schedule(now: now)
+          .daysUntilDue
+          .compareTo(b.schedule(now: now).daysUntilDue),
+    );
+});
+
 // -------------------------------------------------------------- pencarian
 
 /// Kata kunci pencarian di layar cari.
@@ -318,6 +361,32 @@ class ThemeModeController extends StateNotifier<ThemeMode> {
 final themeModeProvider =
     StateNotifierProvider<ThemeModeController, ThemeMode>(
   (ref) => ThemeModeController(ref.watch(settingsStoreProvider)),
+);
+
+/// Kartu utama di beranda: sisa budget atau total saldo.
+///
+/// Sama seperti mode warna, dimulai dari bawaan lalu diganti begitu pilihan
+/// tersimpan selesai dibaca, supaya beranda tidak menunggu sebelum tampil.
+class HomeFocusController extends StateNotifier<HomeFocus> {
+  HomeFocusController(this._store) : super(SettingsStore.defaultHomeFocus) {
+    _load();
+  }
+
+  final SettingsStore _store;
+
+  Future<void> _load() async {
+    state = await _store.readHomeFocus();
+  }
+
+  Future<void> set(HomeFocus focus) async {
+    state = focus;
+    await _store.writeHomeFocus(focus);
+  }
+}
+
+final homeFocusProvider =
+    StateNotifierProvider<HomeFocusController, HomeFocus>(
+  (ref) => HomeFocusController(ref.watch(settingsStoreProvider)),
 );
 
 /// Pengambil dan pembaca foto struk, dipakai layar scan maupun bagi tagihan.
