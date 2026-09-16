@@ -10,10 +10,23 @@ library;
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+/// Kartu utama yang ditampilkan paling atas di beranda.
+enum HomeFocus {
+  /// Sisa budget periode ini. Bawaan, karena begitulah beranda sejak awal.
+  budget,
+
+  /// Total saldo seluruh dompet, untuk yang tidak memakai budget dan
+  /// cukup ingin tahu uangnya tinggal berapa.
+  balance,
+}
+
 class SettingsStore {
   const SettingsStore();
 
   static const _themeKey = 'theme_mode';
+  static const _homeFocusKey = 'home_focus';
+
+  static const defaultHomeFocus = HomeFocus.budget;
   static const _modelKey = 'scan_model';
 
   /// Bawaan aplikasi adalah terang.
@@ -31,6 +44,20 @@ class SettingsStore {
   Future<void> write(ThemeMode mode) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_themeKey, mode.name);
+  }
+
+  Future<HomeFocus> readHomeFocus() async {
+    final prefs = await SharedPreferences.getInstance();
+    return switch (prefs.getString(_homeFocusKey)) {
+      'balance' => HomeFocus.balance,
+      'budget' => HomeFocus.budget,
+      _ => defaultHomeFocus,
+    };
+  }
+
+  Future<void> writeHomeFocus(HomeFocus focus) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_homeFocusKey, focus.name);
   }
 
   /// Nilai yang tidak dikenal — misalnya sisa versi lama — jatuh kembali

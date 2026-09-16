@@ -200,6 +200,17 @@ final walletBalancesProvider = StreamProvider<Map<String, int>>(
   (ref) => ref.watch(transactionRepositoryProvider).watchWalletBalances(),
 );
 
+/// Total saldo seluruh dompet yang masih aktif.
+///
+/// Dompet yang diarsipkan tidak ikut. Mengarsipkan berarti "sudah tidak
+/// kupakai", dan sisa angkanya — sering kali nol atau sisa receh — hanya
+/// akan membuat total terlihat keliru.
+final totalBalanceProvider = Provider<int>((ref) {
+  final wallets = ref.watch(walletsProvider).value ?? const <Wallet>[];
+  final balances = ref.watch(walletBalancesProvider).value ?? const {};
+  return wallets.fold<int>(0, (sum, w) => sum + (balances[w.id] ?? 0));
+});
+
 // ---------------------------------------------------------- tagihan tetap
 
 final fixedBillRepositoryProvider = Provider<FixedBillRepository>(
@@ -350,6 +361,32 @@ class ThemeModeController extends StateNotifier<ThemeMode> {
 final themeModeProvider =
     StateNotifierProvider<ThemeModeController, ThemeMode>(
   (ref) => ThemeModeController(ref.watch(settingsStoreProvider)),
+);
+
+/// Kartu utama di beranda: sisa budget atau total saldo.
+///
+/// Sama seperti mode warna, dimulai dari bawaan lalu diganti begitu pilihan
+/// tersimpan selesai dibaca, supaya beranda tidak menunggu sebelum tampil.
+class HomeFocusController extends StateNotifier<HomeFocus> {
+  HomeFocusController(this._store) : super(SettingsStore.defaultHomeFocus) {
+    _load();
+  }
+
+  final SettingsStore _store;
+
+  Future<void> _load() async {
+    state = await _store.readHomeFocus();
+  }
+
+  Future<void> set(HomeFocus focus) async {
+    state = focus;
+    await _store.writeHomeFocus(focus);
+  }
+}
+
+final homeFocusProvider =
+    StateNotifierProvider<HomeFocusController, HomeFocus>(
+  (ref) => HomeFocusController(ref.watch(settingsStoreProvider)),
 );
 
 /// Pengambil dan pembaca foto struk, dipakai layar scan maupun bagi tagihan.

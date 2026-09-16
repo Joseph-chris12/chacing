@@ -9,6 +9,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:chacing/data/settings_store.dart';
 import 'package:chacing/providers.dart';
 
 const _themeLabels = <ThemeMode, ({String title, String subtitle})>{
@@ -26,6 +27,17 @@ const _themeLabels = <ThemeMode, ({String title, String subtitle})>{
   ),
 };
 
+const _homeFocusLabels = <HomeFocus, ({String title, String subtitle})>{
+  HomeFocus.budget: (
+    title: 'Sisa budget',
+    subtitle: 'Berapa yang masih boleh dipakai di periode ini.',
+  ),
+  HomeFocus.balance: (
+    title: 'Saldo',
+    subtitle: 'Total uang di semua dompet, tanpa perlu menetapkan budget.',
+  ),
+};
+
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
@@ -33,6 +45,7 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final mode = ref.watch(themeModeProvider);
+    final focus = ref.watch(homeFocusProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Tampilan')),
@@ -55,6 +68,32 @@ class SettingsScreen extends ConsumerWidget {
               children: [
                 for (final entry in _themeLabels.entries)
                   RadioListTile<ThemeMode>(
+                    value: entry.key,
+                    title: Text(entry.value.title),
+                    subtitle: Text(entry.value.subtitle),
+                  ),
+              ],
+            ),
+          ),
+          const Divider(height: 32),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+            child: Text(
+              'Kartu utama di beranda',
+              style: theme.textTheme.titleSmall,
+            ),
+          ),
+          RadioGroup<HomeFocus>(
+            groupValue: focus,
+            onChanged: (value) {
+              if (value != null) {
+                ref.read(homeFocusProvider.notifier).set(value);
+              }
+            },
+            child: Column(
+              children: [
+                for (final entry in _homeFocusLabels.entries)
+                  RadioListTile<HomeFocus>(
                     value: entry.key,
                     title: Text(entry.value.title),
                     subtitle: Text(entry.value.subtitle),

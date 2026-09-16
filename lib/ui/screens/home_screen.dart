@@ -16,11 +16,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:chacing/data/database.dart';
+import 'package:chacing/data/settings_store.dart';
 import 'package:chacing/domain/budget_period.dart';
 import 'package:chacing/providers.dart';
 import 'package:chacing/ui/screens/budget_settings_screen.dart';
 import 'package:chacing/ui/screens/quick_entry_screen.dart';
 import 'package:chacing/ui/screens/search_screen.dart';
+import 'package:chacing/ui/screens/wallets_screen.dart';
+import 'package:chacing/ui/widgets/balance_summary.dart';
 import 'package:chacing/ui/widgets/add_money_sheet.dart';
 import 'package:chacing/ui/widgets/budget_summary.dart';
 import 'package:chacing/ui/widgets/due_bills_card.dart';
@@ -90,18 +93,26 @@ class HomeScreen extends ConsumerWidget {
     final daily = ref.watch(dailySpendingProvider);
     final transactions = ref.watch(periodTransactionsProvider);
     final categories = ref.watch(categoriesProvider).value ?? const <Category>[];
+    final showBalance = ref.watch(homeFocusProvider) == HomeFocus.balance;
 
     final header = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const PeriodNavigator(),
         const DueBillsCard(),
-        BudgetSummary(
-          status: status,
-          onTap: () => Navigator.of(context).push<bool>(
-            MaterialPageRoute(builder: (_) => const BudgetSettingsScreen()),
+        if (showBalance)
+          BalanceSummary(
+            onTap: () => Navigator.of(context).push<void>(
+              MaterialPageRoute(builder: (_) => const WalletsScreen()),
+            ),
+          )
+        else
+          BudgetSummary(
+            status: status,
+            onTap: () => Navigator.of(context).push<bool>(
+              MaterialPageRoute(builder: (_) => const BudgetSettingsScreen()),
+            ),
           ),
-        ),
         const Divider(height: 20),
         _SectionTitle(
           title: status.range.kind == PeriodKind.day
@@ -118,7 +129,10 @@ class HomeScreen extends ConsumerWidget {
             ),
             data: (days) => SpendingBarChart(
               days: days,
-              idealDailyPace: status.idealDailyPace,
+              // Di mode saldo tidak ada batas harian yang perlu ditandai.
+              // Batang merah untuk budget yang tidak ditampilkan hanya
+              // akan membingungkan.
+              idealDailyPace: showBalance ? 0 : status.idealDailyPace,
             ),
           ),
         ),

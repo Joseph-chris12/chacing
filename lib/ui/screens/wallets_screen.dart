@@ -61,6 +61,12 @@ class WalletsScreen extends ConsumerWidget {
               leading: CircleAvatar(
                 child: Icon(walletIcon(wallet.type.name), size: 20),
               ),
+              onTap: () => _setBalance(
+                context,
+                ref,
+                wallet,
+                balances[wallet.id] ?? 0,
+              ),
               title: Text(wallet.name),
               subtitle: Text(
                 '${_walletTypeNames[wallet.type] ?? wallet.type.name}'
@@ -83,6 +89,33 @@ class WalletsScreen extends ConsumerWidget {
         onPressed: () => _addWallet(context, ref),
         icon: const Icon(Icons.add),
         label: const Text('Tambah'),
+      ),
+    );
+  }
+
+  /// Menyamakan saldo dompet dengan isi sebenarnya.
+  ///
+  /// Riwayat transaksi tidak diubah — hanya saldo awalnya yang disesuaikan
+  /// supaya angka di layar cocok dengan yang ada di dompet atau rekening.
+  Future<void> _setBalance(
+    BuildContext context,
+    WidgetRef ref,
+    Wallet wallet,
+    int current,
+  ) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final result = await showModalBottomSheet<int>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => _BalanceForm(wallet: wallet, current: current),
+    );
+    if (result == null) return;
+
+    await ref.read(walletRepositoryProvider).setBalance(wallet.id, result);
+
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text('Saldo ${wallet.name} sekarang ${formatRupiah(result)}'),
       ),
     );
   }
@@ -217,6 +250,79 @@ class _WalletFormState extends State<_WalletForm> {
             child: FilledButton(
               onPressed: _submit,
               child: const Text('Simpan'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Formulir saldo dompet.
+///
+/// Dimulai dari nol, bukan dari saldo sekarang. Papan angka menambah digit
+/// di belakang, dan yang ingin diketik adalah angka baru yang dilihat di
+/// dompet atau aplikasi bank — bukan perubahan dari angka lama.
+class _BalanceForm extends StatefulWidget {
+  const _BalanceForm({required this.wallet, required this.current});
+
+  final Wallet wallet;
+  final int current;
+
+  @override
+  State<_BalanceForm> createState() => _BalanceFormState();
+}
+
+class _BalanceFormState extends State<_BalanceForm> {
+  int _amount = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Padding(
+      padding: EdgeInsets.only(
+        left: 16,
+        right: 16,
+        top: 20,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'Saldo ${widget.wallet.name}',
+            style: theme.textTheme.titleMedium,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Ketik isi ${widget.wallet.name} yang sebenarnya sekarang. '
+            'Tercatat di aplikasi: ${formatRupiah(widget.current)}.',
+            style: theme.textTheme.bodySmall,
+          ),
+          const SizedBox(height: 16),
+          Text(formatRupiah(_amount), style: theme.textTheme.headlineMedium),
+          const SizedBox(height: 4),
+          Text(
+            'Riwayat transaksi tidak berubah.',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 12),
+          AmountKeypad(
+            amount: _amount,
+            onChanged: (value) => setState(() => _amount = value),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 48,
+            child: FilledButton(
+              // Nol tetap boleh: dompet yang memang kosong adalah saldo
+              // yang sah, misalnya e-wallet yang belum pernah diisi.
+              onPressed: () => Navigator.of(context).pop(_amount),
+              child: const Text('Simpan saldo'),
             ),
           ),
         ],
