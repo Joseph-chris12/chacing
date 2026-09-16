@@ -17,6 +17,7 @@ import 'package:chacing/data/settings_store.dart';
 import 'package:chacing/data/database.dart';
 import 'package:chacing/data/repositories/budget_repository.dart';
 import 'package:chacing/data/repositories/category_repository.dart';
+import 'package:chacing/data/repositories/fixed_bill_repository.dart';
 import 'package:chacing/data/repositories/person_repository.dart';
 import 'package:chacing/data/repositories/transaction_repository.dart';
 import 'package:chacing/data/repositories/wallet_repository.dart';
@@ -198,6 +199,37 @@ final backupServiceProvider = Provider<BackupService>(
 final walletBalancesProvider = StreamProvider<Map<String, int>>(
   (ref) => ref.watch(transactionRepositoryProvider).watchWalletBalances(),
 );
+
+// ---------------------------------------------------------- tagihan tetap
+
+final fixedBillRepositoryProvider = Provider<FixedBillRepository>(
+  (ref) => FixedBillRepository(
+    ref.watch(databaseProvider),
+    ref.watch(transactionRepositoryProvider),
+  ),
+);
+
+/// Semua tagihan tetap yang aktif, urut tanggal jatuh tempo.
+final fixedBillsProvider = StreamProvider<List<FixedBillView>>(
+  (ref) => ref.watch(fixedBillRepositoryProvider).watchActive(),
+);
+
+/// Tagihan yang perlu diperhatikan sekarang: lewat, hari ini, atau
+/// sebentar lagi — dan belum dibayar. Yang paling mendesak lebih dulu.
+final billsNeedingAttentionProvider = Provider<List<FixedBillView>>((ref) {
+  final now = DateTime.now();
+  final bills = ref.watch(fixedBillsProvider).value ?? const [];
+
+  return [
+    for (final view in bills)
+      if (view.schedule(now: now).status.needsAttention) view,
+  ]..sort(
+      (a, b) => a
+          .schedule(now: now)
+          .daysUntilDue
+          .compareTo(b.schedule(now: now).daysUntilDue),
+    );
+});
 
 // -------------------------------------------------------------- pencarian
 

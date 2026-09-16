@@ -35,7 +35,19 @@ mixin SyncColumns on Table {
 
 enum WalletType { cash, ewallet, bank, credit }
 
-enum TransactionSource { manual, ocrReceipt, ocrScreenshot, recurring }
+/// Asal sebuah baris transaksi.
+///
+/// [income] adalah uang masuk — gaji, uang saku, kiriman. Disimpan dengan
+/// nominal negatif dan dikecualikan dari budget, persis seperti sisi masuk
+/// pindah dana, sehingga rumus saldo dompet (`saldo awal − jumlah total`)
+/// tetap benar tanpa kolom baru.
+///
+/// [recurring] dipakai untuk pembayaran tagihan tetap.
+///
+/// Nilai baru selalu ditambahkan di belakang. Kolomnya menyimpan nama,
+/// jadi urutan tidak berpengaruh ke data, tapi menjaga urutan membuat
+/// perbedaan antar versi mudah dibaca.
+enum TransactionSource { manual, ocrReceipt, ocrScreenshot, recurring, income }
 
 /// Dompet: tunai, GoPay, OVO, rekening bank, kartu kredit.
 @DataClassName('Wallet')
@@ -191,6 +203,48 @@ class Budgets extends Table with SyncColumns {
   Set<Column> get primaryKey => {id};
 }
 
+/// Tagihan tetap bulanan: kos, internet, cicilan, iuran.
+///
+/// Tagihan tidak pernah tercatat sendiri. Saat jatuh tempo, aplikasi
+/// menampilkannya dan pengguna yang menekan "Bayar" — karena yang dicatat
+/// harus uang yang benar-benar sudah keluar, bukan yang seharusnya keluar.
+@DataClassName('FixedBill')
+class FixedBills extends Table with SyncColumns {
+  TextColumn get name => text().withLength(min: 1, max: 60)();
+
+  /// Nominal yang biasanya dibayar. Boleh diubah saat membayar: tagihan
+  /// seperti listrik atau air hampir tidak pernah sama persis tiap bulan.
+  IntColumn get amount => integer()();
+
+  /// Tanggal jatuh tempo, 1 sampai 31. Di bulan yang lebih pendek, tagihan
+  /// jatuh di hari terakhir bulan itu.
+  IntColumn get dueDay => integer()();
+
+  TextColumn get walletId => text().nullable().references(Wallets, #id)();
+  TextColumn get categoryId => text().nullable().references(Categories, #id)();
+
+  /// Apakah pembayarannya ikut mengurangi budget. Dipilih per tagihan:
+  /// cicilan HP mungkin terasa seperti belanja, sewa kos tidak.
+  BoolColumn get countInBudget =>
+      boolean().withDefault(const Constant(false))();
+
+  BoolColumn get isActive => boolean().withDefault(const Constant(true))();
+
+  /// Awal bulan terakhir yang sudah dibayar.
+  DateTimeColumn get paidForMonth => dateTime().nullable()();
+
+  /// Transaksi pembayaran terakhir.
+  ///
+  /// Sengaja bukan foreign key. Tombstone transaksi dibuang permanen
+  /// setelah 90 hari, dan foreign key akan menggagalkan pembuangan itu.
+  /// Kalau transaksinya dihapus pengguna, tagihannya kembali dianggap
+  /// belum dibayar — itulah cara membatalkan pembayaran yang salah.
+  TextColumn get lastTransactionId => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 /// Catatan sync per tabel: kapan terakhir berhasil tarik data dari server.
 ///
 /// Kolomnya dinamai `entity`, bukan `tableName`, karena `tableName` sudah
@@ -215,6 +269,7 @@ class SyncStates extends Table {
     Assignments,
     Payments,
     Budgets,
+    FixedBills,
     SyncStates,
   ],
 )
@@ -236,7 +291,11 @@ class AppDatabase extends _$AppDatabase {
       const DriftDatabaseOptions(storeDateTimeAsText: true);
 
   @override
-  int get schemaVersion => 1;
+  /// Riwayat versi:
+  ///
+  ///  1. Skema awal MVP.
+  ///  2. Tabel `fixed_bills` untuk tagihan tetap bulanan.
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -244,9 +303,15 @@ class AppDatabase extends _$AppDatabase {
           await m.createAll();
           await _createIndexes();
         },
-        // Setiap penambahan kolom di versi berikutnya ditangani di sini.
-        // Jangan pernah rilis tanpa menaikkan schemaVersion.
-        onUpgrade: (m, from, to) async {},
+        // Setiap perubahan struktur ditangani di sini, satu langkah per
+        // versi. Langkahnya bertingkat dengan `from < n`, bukan `from == n`,
+        // supaya HP yang melompati beberapa versi sekaligus tetap menjalani
+        // semua langkah yang terlewat secara berurutan.
+        onUpgrade: (m, from, to) async {
+          if (from < 2) {
+            await m.createTable(fixedBills);
+          }
+        },
         beforeOpen: (details) async {
           await customStatement('PRAGMA foreign_keys = ON');
         },

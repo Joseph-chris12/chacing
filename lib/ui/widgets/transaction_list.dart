@@ -13,6 +13,7 @@ import 'package:chacing/domain/daily_group.dart';
 import 'package:chacing/ui/category_colors.dart';
 import 'package:chacing/ui/category_icons.dart';
 import 'package:chacing/ui/format.dart';
+import 'package:chacing/ui/theme.dart';
 
 class TransactionList extends StatelessWidget {
   const TransactionList({
@@ -39,20 +40,18 @@ class TransactionList extends StatelessWidget {
       dateOf: (t) => t.occurredAt,
       // `ownShare`, bukan `total`. Uang talangan orang lain bukan
       // pengeluaranmu, dan subtotal harian harus mencerminkan itu.
-      amountOf: (t) => t.ownShare,
+      // Uang masuk tidak dijumlahkan sama sekali: hari gajian akan
+      // terbaca sebagai hari dengan pengeluaran minus dua juta.
+      amountOf: (t) => t.source == TransactionSource.income ? 0 : t.ownShare,
     );
 
     final categoryById = {for (final c in categories) c.id: c};
 
     return CustomScrollView(
       slivers: [
-        if (header != null)
-          SliverToBoxAdapter(child: header),
+        if (header != null) SliverToBoxAdapter(child: header),
         if (groups.isEmpty)
-          const SliverFillRemaining(
-            hasScrollBody: false,
-            child: _EmptyState(),
-          )
+          const SliverFillRemaining(hasScrollBody: false, child: _EmptyState())
         else
           for (final group in groups) ...[
             SliverToBoxAdapter(child: _DayHeader(group: group)),
@@ -129,6 +128,13 @@ class _TransactionTile extends StatelessWidget {
     // berbeda yang sama-sama perlu dilihat.
     final isSplit = transaction.ownShare != transaction.total;
 
+    // Nominal negatif berarti uang masuk ke dompet: pemasukan, atau sisi
+    // penerima pindah dana. Ditampilkan sebagai "+Rp" berwarna hijau,
+    // bukan "Rp -200.000" yang terbaca seperti pengeluaran yang aneh.
+    final isMoneyIn = transaction.ownShare < 0;
+    final isIncome = transaction.source == TransactionSource.income;
+    final isBill = transaction.source == TransactionSource.recurring;
+
     return Slidable(
       key: ValueKey(transaction.id),
       endActionPane: ActionPane(
@@ -147,33 +153,51 @@ class _TransactionTile extends StatelessWidget {
       ),
       child: ListTile(
         onTap: onEdit,
-        leading: Builder(
-          builder: (context) {
-            final color = categoryColor(
-              stored: category?.colorValue,
-              seed: category?.id ?? 'tanpa-kategori',
-              brightness: theme.brightness,
-            );
-            return CircleAvatar(
-              backgroundColor: color.withValues(alpha: 0.16),
-              foregroundColor: color,
-              child: Icon(categoryIcon(category?.icon), size: 20),
-            );
-          },
-        ),
+        leading: isIncome
+            ? CircleAvatar(
+                backgroundColor: moneyInColor(theme.brightness)
+                    .withValues(alpha: 0.16),
+                foregroundColor: moneyInColor(theme.brightness),
+                child: const Icon(Icons.savings_outlined, size: 20),
+              )
+            : Builder(
+                builder: (context) {
+                  final color = categoryColor(
+                    stored: category?.colorValue,
+                    seed: category?.id ?? 'tanpa-kategori',
+                    brightness: theme.brightness,
+                  );
+                  return CircleAvatar(
+                    backgroundColor: color.withValues(alpha: 0.16),
+                    foregroundColor: color,
+                    child: Icon(categoryIcon(category?.icon), size: 20),
+                  );
+                },
+              ),
         title: Text(
           transaction.merchant,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
-        subtitle: Text(category?.name ?? 'Tanpa kategori'),
+        subtitle: Text(
+          isIncome
+              ? 'Uang masuk'
+              : isBill
+              ? '${category?.name ?? 'Tanpa kategori'} · Tagihan tetap'
+              : category?.name ?? 'Tanpa kategori',
+        ),
         trailing: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Text(
-              formatRupiah(transaction.ownShare),
-              style: const TextStyle(fontWeight: FontWeight.w600),
+              isMoneyIn
+                  ? '+${formatRupiah(-transaction.ownShare)}'
+                  : formatRupiah(transaction.ownShare),
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: isMoneyIn ? moneyInColor(theme.brightness) : null,
+              ),
             ),
             if (isSplit)
               Text(
@@ -211,7 +235,10 @@ class _EmptyState extends StatelessWidget {
               color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
             ),
             const SizedBox(height: 16),
-            Text('Belum ada catatan minggu ini', style: theme.textTheme.titleMedium),
+            Text(
+              'Belum ada catatan minggu ini',
+              style: theme.textTheme.titleMedium,
+            ),
             const SizedBox(height: 6),
             Text(
               'Ketuk tombol Catat di bawah untuk\nmenambah pengeluaran pertama.',

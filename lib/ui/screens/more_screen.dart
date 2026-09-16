@@ -14,6 +14,7 @@ import 'package:chacing/ui/screens/api_key_screen.dart';
 import 'package:chacing/ui/screens/backup_screen.dart';
 import 'package:chacing/ui/screens/budget_settings_screen.dart';
 import 'package:chacing/ui/screens/categories_screen.dart';
+import 'package:chacing/ui/screens/fixed_bills_screen.dart';
 import 'package:chacing/ui/screens/people_screen.dart';
 import 'package:chacing/ui/screens/search_screen.dart';
 import 'package:chacing/ui/screens/settings_screen.dart';
@@ -35,6 +36,8 @@ class MoreScreen extends ConsumerWidget {
     final wallets = ref.watch(walletsProvider).value?.length ?? 0;
     final people = ref.watch(peopleProvider).value?.length ?? 0;
     final hasApiKey = ref.watch(hasApiKeyProvider).value ?? false;
+    final bills = ref.watch(fixedBillsProvider).value ?? const [];
+    final billsPerMonth = bills.fold<int>(0, (sum, v) => sum + v.bill.amount);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Lainnya')),
@@ -63,6 +66,15 @@ class MoreScreen extends ConsumerWidget {
                 : '${formatRupiah(budget.amount)} per '
                     '${budget.period.unit}',
             onTap: () => _open(context, const BudgetSettingsScreen()),
+          ),
+          _Tile(
+            icon: Icons.event_repeat,
+            title: 'Tagihan tetap',
+            subtitle: bills.isEmpty
+                ? 'Kos, internet, cicilan tiap bulan'
+                : '${bills.length} tagihan · '
+                    '${formatRupiah(billsPerMonth)} per bulan',
+            onTap: () => _open(context, const FixedBillsScreen()),
           ),
           _Tile(
             icon: Icons.account_balance_wallet_outlined,

@@ -12,6 +12,7 @@ import 'package:chacing/data/database.dart';
 import 'package:chacing/providers.dart';
 import 'package:chacing/ui/category_icons.dart';
 import 'package:chacing/ui/format.dart';
+import 'package:chacing/ui/widgets/add_money_sheet.dart';
 import 'package:chacing/ui/widgets/amount_keypad.dart';
 
 /// Nama jenis dompet dalam bahasa Indonesia.
@@ -35,6 +36,11 @@ class WalletsScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Dompet'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.savings_outlined),
+            tooltip: 'Tambah uang',
+            onPressed: () => openAddMoney(context, ref),
+          ),
           if (canTransfer)
             IconButton(
               icon: const Icon(Icons.swap_horiz),

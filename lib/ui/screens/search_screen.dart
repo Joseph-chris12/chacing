@@ -14,6 +14,7 @@ import 'package:chacing/data/database.dart';
 import 'package:chacing/providers.dart';
 import 'package:chacing/ui/format.dart';
 import 'package:chacing/ui/screens/quick_entry_screen.dart';
+import 'package:chacing/ui/widgets/add_money_sheet.dart';
 import 'package:chacing/ui/widgets/transaction_list.dart';
 
 class SearchScreen extends ConsumerStatefulWidget {
@@ -84,11 +85,14 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                       transactions: rows,
                       categories: categories,
                       header: _ResultSummary(rows: rows),
-                      onEdit: (row) => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => QuickEntryScreen(existing: row),
-                        ),
-                      ),
+                      onEdit: (row) => row.source == TransactionSource.income
+                          ? openAddMoney(context, ref, existing: row)
+                          : Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    QuickEntryScreen(existing: row),
+                              ),
+                            ),
                       onDelete: (row) => ref
                           .read(transactionRepositoryProvider)
                           .softDelete(row.id),
@@ -160,8 +164,14 @@ class _ResultSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final total = rows.fold<int>(0, (sum, row) => sum + row.ownShare);
-    final average = total ~/ rows.length;
+    // Uang masuk tidak ikut dijumlahkan: gaji Rp 2.500.000 akan membuat
+    // total pengeluaran hasil pencarian terbaca negatif.
+    final spending = [
+      for (final row in rows)
+        if (row.source != TransactionSource.income) row,
+    ];
+    final total = spending.fold<int>(0, (sum, row) => sum + row.ownShare);
+    final average = spending.isEmpty ? 0 : total ~/ spending.length;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),

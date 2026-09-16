@@ -5388,6 +5388,858 @@ class BudgetsCompanion extends UpdateCompanion<Budget> {
   }
 }
 
+class $FixedBillsTable extends FixedBills
+    with TableInfo<$FixedBillsTable, FixedBill> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $FixedBillsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _isDirtyMeta = const VerificationMeta(
+    'isDirty',
+  );
+  @override
+  late final GeneratedColumn<bool> isDirty = GeneratedColumn<bool>(
+    'is_dirty',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_dirty" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(
+      minTextLength: 1,
+      maxTextLength: 60,
+    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _amountMeta = const VerificationMeta('amount');
+  @override
+  late final GeneratedColumn<int> amount = GeneratedColumn<int>(
+    'amount',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _dueDayMeta = const VerificationMeta('dueDay');
+  @override
+  late final GeneratedColumn<int> dueDay = GeneratedColumn<int>(
+    'due_day',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _walletIdMeta = const VerificationMeta(
+    'walletId',
+  );
+  @override
+  late final GeneratedColumn<String> walletId = GeneratedColumn<String>(
+    'wallet_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES wallets (id)',
+    ),
+  );
+  static const VerificationMeta _categoryIdMeta = const VerificationMeta(
+    'categoryId',
+  );
+  @override
+  late final GeneratedColumn<String> categoryId = GeneratedColumn<String>(
+    'category_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES categories (id)',
+    ),
+  );
+  static const VerificationMeta _countInBudgetMeta = const VerificationMeta(
+    'countInBudget',
+  );
+  @override
+  late final GeneratedColumn<bool> countInBudget = GeneratedColumn<bool>(
+    'count_in_budget',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("count_in_budget" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _isActiveMeta = const VerificationMeta(
+    'isActive',
+  );
+  @override
+  late final GeneratedColumn<bool> isActive = GeneratedColumn<bool>(
+    'is_active',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_active" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  static const VerificationMeta _paidForMonthMeta = const VerificationMeta(
+    'paidForMonth',
+  );
+  @override
+  late final GeneratedColumn<DateTime> paidForMonth = GeneratedColumn<DateTime>(
+    'paid_for_month',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _lastTransactionIdMeta = const VerificationMeta(
+    'lastTransactionId',
+  );
+  @override
+  late final GeneratedColumn<String> lastTransactionId =
+      GeneratedColumn<String>(
+        'last_transaction_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    createdAt,
+    updatedAt,
+    deletedAt,
+    isDirty,
+    name,
+    amount,
+    dueDay,
+    walletId,
+    categoryId,
+    countInBudget,
+    isActive,
+    paidForMonth,
+    lastTransactionId,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'fixed_bills';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<FixedBill> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    if (data.containsKey('is_dirty')) {
+      context.handle(
+        _isDirtyMeta,
+        isDirty.isAcceptableOrUnknown(data['is_dirty']!, _isDirtyMeta),
+      );
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('amount')) {
+      context.handle(
+        _amountMeta,
+        amount.isAcceptableOrUnknown(data['amount']!, _amountMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_amountMeta);
+    }
+    if (data.containsKey('due_day')) {
+      context.handle(
+        _dueDayMeta,
+        dueDay.isAcceptableOrUnknown(data['due_day']!, _dueDayMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dueDayMeta);
+    }
+    if (data.containsKey('wallet_id')) {
+      context.handle(
+        _walletIdMeta,
+        walletId.isAcceptableOrUnknown(data['wallet_id']!, _walletIdMeta),
+      );
+    }
+    if (data.containsKey('category_id')) {
+      context.handle(
+        _categoryIdMeta,
+        categoryId.isAcceptableOrUnknown(data['category_id']!, _categoryIdMeta),
+      );
+    }
+    if (data.containsKey('count_in_budget')) {
+      context.handle(
+        _countInBudgetMeta,
+        countInBudget.isAcceptableOrUnknown(
+          data['count_in_budget']!,
+          _countInBudgetMeta,
+        ),
+      );
+    }
+    if (data.containsKey('is_active')) {
+      context.handle(
+        _isActiveMeta,
+        isActive.isAcceptableOrUnknown(data['is_active']!, _isActiveMeta),
+      );
+    }
+    if (data.containsKey('paid_for_month')) {
+      context.handle(
+        _paidForMonthMeta,
+        paidForMonth.isAcceptableOrUnknown(
+          data['paid_for_month']!,
+          _paidForMonthMeta,
+        ),
+      );
+    }
+    if (data.containsKey('last_transaction_id')) {
+      context.handle(
+        _lastTransactionIdMeta,
+        lastTransactionId.isAcceptableOrUnknown(
+          data['last_transaction_id']!,
+          _lastTransactionIdMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  FixedBill map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return FixedBill(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+      isDirty: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_dirty'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      amount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}amount'],
+      )!,
+      dueDay: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}due_day'],
+      )!,
+      walletId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}wallet_id'],
+      ),
+      categoryId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}category_id'],
+      ),
+      countInBudget: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}count_in_budget'],
+      )!,
+      isActive: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_active'],
+      )!,
+      paidForMonth: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}paid_for_month'],
+      ),
+      lastTransactionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}last_transaction_id'],
+      ),
+    );
+  }
+
+  @override
+  $FixedBillsTable createAlias(String alias) {
+    return $FixedBillsTable(attachedDatabase, alias);
+  }
+}
+
+class FixedBill extends DataClass implements Insertable<FixedBill> {
+  final String id;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  final bool isDirty;
+  final String name;
+
+  /// Nominal yang biasanya dibayar. Boleh diubah saat membayar: tagihan
+  /// seperti listrik atau air hampir tidak pernah sama persis tiap bulan.
+  final int amount;
+
+  /// Tanggal jatuh tempo, 1 sampai 31. Di bulan yang lebih pendek, tagihan
+  /// jatuh di hari terakhir bulan itu.
+  final int dueDay;
+  final String? walletId;
+  final String? categoryId;
+
+  /// Apakah pembayarannya ikut mengurangi budget. Dipilih per tagihan:
+  /// cicilan HP mungkin terasa seperti belanja, sewa kos tidak.
+  final bool countInBudget;
+  final bool isActive;
+
+  /// Awal bulan terakhir yang sudah dibayar.
+  final DateTime? paidForMonth;
+
+  /// Transaksi pembayaran terakhir.
+  ///
+  /// Sengaja bukan foreign key. Tombstone transaksi dibuang permanen
+  /// setelah 90 hari, dan foreign key akan menggagalkan pembuangan itu.
+  /// Kalau transaksinya dihapus pengguna, tagihannya kembali dianggap
+  /// belum dibayar — itulah cara membatalkan pembayaran yang salah.
+  final String? lastTransactionId;
+  const FixedBill({
+    required this.id,
+    required this.createdAt,
+    required this.updatedAt,
+    this.deletedAt,
+    required this.isDirty,
+    required this.name,
+    required this.amount,
+    required this.dueDay,
+    this.walletId,
+    this.categoryId,
+    required this.countInBudget,
+    required this.isActive,
+    this.paidForMonth,
+    this.lastTransactionId,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    map['is_dirty'] = Variable<bool>(isDirty);
+    map['name'] = Variable<String>(name);
+    map['amount'] = Variable<int>(amount);
+    map['due_day'] = Variable<int>(dueDay);
+    if (!nullToAbsent || walletId != null) {
+      map['wallet_id'] = Variable<String>(walletId);
+    }
+    if (!nullToAbsent || categoryId != null) {
+      map['category_id'] = Variable<String>(categoryId);
+    }
+    map['count_in_budget'] = Variable<bool>(countInBudget);
+    map['is_active'] = Variable<bool>(isActive);
+    if (!nullToAbsent || paidForMonth != null) {
+      map['paid_for_month'] = Variable<DateTime>(paidForMonth);
+    }
+    if (!nullToAbsent || lastTransactionId != null) {
+      map['last_transaction_id'] = Variable<String>(lastTransactionId);
+    }
+    return map;
+  }
+
+  FixedBillsCompanion toCompanion(bool nullToAbsent) {
+    return FixedBillsCompanion(
+      id: Value(id),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+      isDirty: Value(isDirty),
+      name: Value(name),
+      amount: Value(amount),
+      dueDay: Value(dueDay),
+      walletId: walletId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(walletId),
+      categoryId: categoryId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(categoryId),
+      countInBudget: Value(countInBudget),
+      isActive: Value(isActive),
+      paidForMonth: paidForMonth == null && nullToAbsent
+          ? const Value.absent()
+          : Value(paidForMonth),
+      lastTransactionId: lastTransactionId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastTransactionId),
+    );
+  }
+
+  factory FixedBill.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return FixedBill(
+      id: serializer.fromJson<String>(json['id']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      isDirty: serializer.fromJson<bool>(json['isDirty']),
+      name: serializer.fromJson<String>(json['name']),
+      amount: serializer.fromJson<int>(json['amount']),
+      dueDay: serializer.fromJson<int>(json['dueDay']),
+      walletId: serializer.fromJson<String?>(json['walletId']),
+      categoryId: serializer.fromJson<String?>(json['categoryId']),
+      countInBudget: serializer.fromJson<bool>(json['countInBudget']),
+      isActive: serializer.fromJson<bool>(json['isActive']),
+      paidForMonth: serializer.fromJson<DateTime?>(json['paidForMonth']),
+      lastTransactionId: serializer.fromJson<String?>(
+        json['lastTransactionId'],
+      ),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'isDirty': serializer.toJson<bool>(isDirty),
+      'name': serializer.toJson<String>(name),
+      'amount': serializer.toJson<int>(amount),
+      'dueDay': serializer.toJson<int>(dueDay),
+      'walletId': serializer.toJson<String?>(walletId),
+      'categoryId': serializer.toJson<String?>(categoryId),
+      'countInBudget': serializer.toJson<bool>(countInBudget),
+      'isActive': serializer.toJson<bool>(isActive),
+      'paidForMonth': serializer.toJson<DateTime?>(paidForMonth),
+      'lastTransactionId': serializer.toJson<String?>(lastTransactionId),
+    };
+  }
+
+  FixedBill copyWith({
+    String? id,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+    bool? isDirty,
+    String? name,
+    int? amount,
+    int? dueDay,
+    Value<String?> walletId = const Value.absent(),
+    Value<String?> categoryId = const Value.absent(),
+    bool? countInBudget,
+    bool? isActive,
+    Value<DateTime?> paidForMonth = const Value.absent(),
+    Value<String?> lastTransactionId = const Value.absent(),
+  }) => FixedBill(
+    id: id ?? this.id,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+    isDirty: isDirty ?? this.isDirty,
+    name: name ?? this.name,
+    amount: amount ?? this.amount,
+    dueDay: dueDay ?? this.dueDay,
+    walletId: walletId.present ? walletId.value : this.walletId,
+    categoryId: categoryId.present ? categoryId.value : this.categoryId,
+    countInBudget: countInBudget ?? this.countInBudget,
+    isActive: isActive ?? this.isActive,
+    paidForMonth: paidForMonth.present ? paidForMonth.value : this.paidForMonth,
+    lastTransactionId: lastTransactionId.present
+        ? lastTransactionId.value
+        : this.lastTransactionId,
+  );
+  FixedBill copyWithCompanion(FixedBillsCompanion data) {
+    return FixedBill(
+      id: data.id.present ? data.id.value : this.id,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      isDirty: data.isDirty.present ? data.isDirty.value : this.isDirty,
+      name: data.name.present ? data.name.value : this.name,
+      amount: data.amount.present ? data.amount.value : this.amount,
+      dueDay: data.dueDay.present ? data.dueDay.value : this.dueDay,
+      walletId: data.walletId.present ? data.walletId.value : this.walletId,
+      categoryId: data.categoryId.present
+          ? data.categoryId.value
+          : this.categoryId,
+      countInBudget: data.countInBudget.present
+          ? data.countInBudget.value
+          : this.countInBudget,
+      isActive: data.isActive.present ? data.isActive.value : this.isActive,
+      paidForMonth: data.paidForMonth.present
+          ? data.paidForMonth.value
+          : this.paidForMonth,
+      lastTransactionId: data.lastTransactionId.present
+          ? data.lastTransactionId.value
+          : this.lastTransactionId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FixedBill(')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('isDirty: $isDirty, ')
+          ..write('name: $name, ')
+          ..write('amount: $amount, ')
+          ..write('dueDay: $dueDay, ')
+          ..write('walletId: $walletId, ')
+          ..write('categoryId: $categoryId, ')
+          ..write('countInBudget: $countInBudget, ')
+          ..write('isActive: $isActive, ')
+          ..write('paidForMonth: $paidForMonth, ')
+          ..write('lastTransactionId: $lastTransactionId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    createdAt,
+    updatedAt,
+    deletedAt,
+    isDirty,
+    name,
+    amount,
+    dueDay,
+    walletId,
+    categoryId,
+    countInBudget,
+    isActive,
+    paidForMonth,
+    lastTransactionId,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is FixedBill &&
+          other.id == this.id &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt &&
+          other.isDirty == this.isDirty &&
+          other.name == this.name &&
+          other.amount == this.amount &&
+          other.dueDay == this.dueDay &&
+          other.walletId == this.walletId &&
+          other.categoryId == this.categoryId &&
+          other.countInBudget == this.countInBudget &&
+          other.isActive == this.isActive &&
+          other.paidForMonth == this.paidForMonth &&
+          other.lastTransactionId == this.lastTransactionId);
+}
+
+class FixedBillsCompanion extends UpdateCompanion<FixedBill> {
+  final Value<String> id;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<bool> isDirty;
+  final Value<String> name;
+  final Value<int> amount;
+  final Value<int> dueDay;
+  final Value<String?> walletId;
+  final Value<String?> categoryId;
+  final Value<bool> countInBudget;
+  final Value<bool> isActive;
+  final Value<DateTime?> paidForMonth;
+  final Value<String?> lastTransactionId;
+  final Value<int> rowid;
+  const FixedBillsCompanion({
+    this.id = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.isDirty = const Value.absent(),
+    this.name = const Value.absent(),
+    this.amount = const Value.absent(),
+    this.dueDay = const Value.absent(),
+    this.walletId = const Value.absent(),
+    this.categoryId = const Value.absent(),
+    this.countInBudget = const Value.absent(),
+    this.isActive = const Value.absent(),
+    this.paidForMonth = const Value.absent(),
+    this.lastTransactionId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  FixedBillsCompanion.insert({
+    required String id,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.deletedAt = const Value.absent(),
+    this.isDirty = const Value.absent(),
+    required String name,
+    required int amount,
+    required int dueDay,
+    this.walletId = const Value.absent(),
+    this.categoryId = const Value.absent(),
+    this.countInBudget = const Value.absent(),
+    this.isActive = const Value.absent(),
+    this.paidForMonth = const Value.absent(),
+    this.lastTransactionId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt),
+       name = Value(name),
+       amount = Value(amount),
+       dueDay = Value(dueDay);
+  static Insertable<FixedBill> custom({
+    Expression<String>? id,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<bool>? isDirty,
+    Expression<String>? name,
+    Expression<int>? amount,
+    Expression<int>? dueDay,
+    Expression<String>? walletId,
+    Expression<String>? categoryId,
+    Expression<bool>? countInBudget,
+    Expression<bool>? isActive,
+    Expression<DateTime>? paidForMonth,
+    Expression<String>? lastTransactionId,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (isDirty != null) 'is_dirty': isDirty,
+      if (name != null) 'name': name,
+      if (amount != null) 'amount': amount,
+      if (dueDay != null) 'due_day': dueDay,
+      if (walletId != null) 'wallet_id': walletId,
+      if (categoryId != null) 'category_id': categoryId,
+      if (countInBudget != null) 'count_in_budget': countInBudget,
+      if (isActive != null) 'is_active': isActive,
+      if (paidForMonth != null) 'paid_for_month': paidForMonth,
+      if (lastTransactionId != null) 'last_transaction_id': lastTransactionId,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  FixedBillsCompanion copyWith({
+    Value<String>? id,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<bool>? isDirty,
+    Value<String>? name,
+    Value<int>? amount,
+    Value<int>? dueDay,
+    Value<String?>? walletId,
+    Value<String?>? categoryId,
+    Value<bool>? countInBudget,
+    Value<bool>? isActive,
+    Value<DateTime?>? paidForMonth,
+    Value<String?>? lastTransactionId,
+    Value<int>? rowid,
+  }) {
+    return FixedBillsCompanion(
+      id: id ?? this.id,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      isDirty: isDirty ?? this.isDirty,
+      name: name ?? this.name,
+      amount: amount ?? this.amount,
+      dueDay: dueDay ?? this.dueDay,
+      walletId: walletId ?? this.walletId,
+      categoryId: categoryId ?? this.categoryId,
+      countInBudget: countInBudget ?? this.countInBudget,
+      isActive: isActive ?? this.isActive,
+      paidForMonth: paidForMonth ?? this.paidForMonth,
+      lastTransactionId: lastTransactionId ?? this.lastTransactionId,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (isDirty.present) {
+      map['is_dirty'] = Variable<bool>(isDirty.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (amount.present) {
+      map['amount'] = Variable<int>(amount.value);
+    }
+    if (dueDay.present) {
+      map['due_day'] = Variable<int>(dueDay.value);
+    }
+    if (walletId.present) {
+      map['wallet_id'] = Variable<String>(walletId.value);
+    }
+    if (categoryId.present) {
+      map['category_id'] = Variable<String>(categoryId.value);
+    }
+    if (countInBudget.present) {
+      map['count_in_budget'] = Variable<bool>(countInBudget.value);
+    }
+    if (isActive.present) {
+      map['is_active'] = Variable<bool>(isActive.value);
+    }
+    if (paidForMonth.present) {
+      map['paid_for_month'] = Variable<DateTime>(paidForMonth.value);
+    }
+    if (lastTransactionId.present) {
+      map['last_transaction_id'] = Variable<String>(lastTransactionId.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FixedBillsCompanion(')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('isDirty: $isDirty, ')
+          ..write('name: $name, ')
+          ..write('amount: $amount, ')
+          ..write('dueDay: $dueDay, ')
+          ..write('walletId: $walletId, ')
+          ..write('categoryId: $categoryId, ')
+          ..write('countInBudget: $countInBudget, ')
+          ..write('isActive: $isActive, ')
+          ..write('paidForMonth: $paidForMonth, ')
+          ..write('lastTransactionId: $lastTransactionId, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $SyncStatesTable extends SyncStates
     with TableInfo<$SyncStatesTable, SyncState> {
   @override
@@ -5623,6 +6475,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $AssignmentsTable assignments = $AssignmentsTable(this);
   late final $PaymentsTable payments = $PaymentsTable(this);
   late final $BudgetsTable budgets = $BudgetsTable(this);
+  late final $FixedBillsTable fixedBills = $FixedBillsTable(this);
   late final $SyncStatesTable syncStates = $SyncStatesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
@@ -5637,6 +6490,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     assignments,
     payments,
     budgets,
+    fixedBills,
     syncStates,
   ];
   @override
@@ -5707,6 +6561,24 @@ final class $$WalletsTableReferences
     ).filter((f) => f.walletId.id.sqlEquals($_itemColumn<String>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_transactionsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$FixedBillsTable, List<FixedBill>>
+  _fixedBillsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.fixedBills,
+    aliasName: 'wallets__id__fixed_bills__wallet_id',
+  );
+
+  $$FixedBillsTableProcessedTableManager get fixedBillsRefs {
+    final manager = $$FixedBillsTableTableManager(
+      $_db,
+      $_db.fixedBills,
+    ).filter((f) => f.walletId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_fixedBillsRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -5784,6 +6656,31 @@ class $$WalletsTableFilterComposer
           }) => $$TransactionsTableFilterComposer(
             $db: $db,
             $table: $db.transactions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> fixedBillsRefs(
+    Expression<bool> Function($$FixedBillsTableFilterComposer f) f,
+  ) {
+    final $$FixedBillsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.fixedBills,
+      getReferencedColumn: (t) => t.walletId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$FixedBillsTableFilterComposer(
+            $db: $db,
+            $table: $db.fixedBills,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -5913,6 +6810,31 @@ class $$WalletsTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> fixedBillsRefs<T extends Object>(
+    Expression<T> Function($$FixedBillsTableAnnotationComposer a) f,
+  ) {
+    final $$FixedBillsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.fixedBills,
+      getReferencedColumn: (t) => t.walletId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$FixedBillsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.fixedBills,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$WalletsTableTableManager
@@ -5928,7 +6850,7 @@ class $$WalletsTableTableManager
           $$WalletsTableUpdateCompanionBuilder,
           (Wallet, $$WalletsTableReferences),
           Wallet,
-          PrefetchHooks Function({bool transactionsRefs})
+          PrefetchHooks Function({bool transactionsRefs, bool fixedBillsRefs})
         > {
   $$WalletsTableTableManager(_$AppDatabase db, $WalletsTable table)
     : super(
@@ -5997,35 +6919,63 @@ class $$WalletsTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({transactionsRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [if (transactionsRefs) db.transactions],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (transactionsRefs)
-                    await $_getPrefetchedData<
-                      Wallet,
-                      $WalletsTable,
-                      Transaction
-                    >(
-                      currentTable: table,
-                      referencedTable: $$WalletsTableReferences
-                          ._transactionsRefsTable(db),
-                      managerFromTypedResult: (p0) => $$WalletsTableReferences(
-                        db,
-                        table,
-                        p0,
-                      ).transactionsRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where((e) => e.walletId == item.id),
-                      typedResults: items,
-                    ),
-                ];
+          prefetchHooksCallback:
+              ({transactionsRefs = false, fixedBillsRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (transactionsRefs) db.transactions,
+                    if (fixedBillsRefs) db.fixedBills,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (transactionsRefs)
+                        await $_getPrefetchedData<
+                          Wallet,
+                          $WalletsTable,
+                          Transaction
+                        >(
+                          currentTable: table,
+                          referencedTable: $$WalletsTableReferences
+                              ._transactionsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$WalletsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).transactionsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.walletId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (fixedBillsRefs)
+                        await $_getPrefetchedData<
+                          Wallet,
+                          $WalletsTable,
+                          FixedBill
+                        >(
+                          currentTable: table,
+                          referencedTable: $$WalletsTableReferences
+                              ._fixedBillsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$WalletsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).fixedBillsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.walletId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -6042,7 +6992,7 @@ typedef $$WalletsTableProcessedTableManager =
       $$WalletsTableUpdateCompanionBuilder,
       (Wallet, $$WalletsTableReferences),
       Wallet,
-      PrefetchHooks Function({bool transactionsRefs})
+      PrefetchHooks Function({bool transactionsRefs, bool fixedBillsRefs})
     >;
 typedef $$CategoriesTableCreateCompanionBuilder = CategoriesCompanion Function({
   required String id,
@@ -6105,6 +7055,24 @@ final class $$CategoriesTableReferences
     ).filter((f) => f.categoryId.id.sqlEquals($_itemColumn<String>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_budgetsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$FixedBillsTable, List<FixedBill>>
+  _fixedBillsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.fixedBills,
+    aliasName: 'categories__id__fixed_bills__category_id',
+  );
+
+  $$FixedBillsTableProcessedTableManager get fixedBillsRefs {
+    final manager = $$FixedBillsTableTableManager(
+      $_db,
+      $_db.fixedBills,
+    ).filter((f) => f.categoryId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_fixedBillsRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -6206,6 +7174,31 @@ class $$CategoriesTableFilterComposer
           }) => $$BudgetsTableFilterComposer(
             $db: $db,
             $table: $db.budgets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> fixedBillsRefs(
+    Expression<bool> Function($$FixedBillsTableFilterComposer f) f,
+  ) {
+    final $$FixedBillsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.fixedBills,
+      getReferencedColumn: (t) => t.categoryId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$FixedBillsTableFilterComposer(
+            $db: $db,
+            $table: $db.fixedBills,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -6358,6 +7351,31 @@ class $$CategoriesTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> fixedBillsRefs<T extends Object>(
+    Expression<T> Function($$FixedBillsTableAnnotationComposer a) f,
+  ) {
+    final $$FixedBillsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.fixedBills,
+      getReferencedColumn: (t) => t.categoryId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$FixedBillsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.fixedBills,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$CategoriesTableTableManager
@@ -6373,7 +7391,11 @@ class $$CategoriesTableTableManager
           $$CategoriesTableUpdateCompanionBuilder,
           (Category, $$CategoriesTableReferences),
           Category,
-          PrefetchHooks Function({bool transactionsRefs, bool budgetsRefs})
+          PrefetchHooks Function({
+            bool transactionsRefs,
+            bool budgetsRefs,
+            bool fixedBillsRefs,
+          })
         > {
   $$CategoriesTableTableManager(_$AppDatabase db, $CategoriesTable table)
     : super(
@@ -6443,12 +7465,17 @@ class $$CategoriesTableTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({transactionsRefs = false, budgetsRefs = false}) {
+              ({
+                transactionsRefs = false,
+                budgetsRefs = false,
+                fixedBillsRefs = false,
+              }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (transactionsRefs) db.transactions,
                     if (budgetsRefs) db.budgets,
+                    if (fixedBillsRefs) db.fixedBills,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
@@ -6495,6 +7522,27 @@ class $$CategoriesTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (fixedBillsRefs)
+                        await $_getPrefetchedData<
+                          Category,
+                          $CategoriesTable,
+                          FixedBill
+                        >(
+                          currentTable: table,
+                          referencedTable: $$CategoriesTableReferences
+                              ._fixedBillsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$CategoriesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).fixedBillsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.categoryId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -6515,7 +7563,11 @@ typedef $$CategoriesTableProcessedTableManager =
       $$CategoriesTableUpdateCompanionBuilder,
       (Category, $$CategoriesTableReferences),
       Category,
-      PrefetchHooks Function({bool transactionsRefs, bool budgetsRefs})
+      PrefetchHooks Function({
+        bool transactionsRefs,
+        bool budgetsRefs,
+        bool fixedBillsRefs,
+      })
     >;
 typedef $$PeopleTableCreateCompanionBuilder = PeopleCompanion Function({
   required String id,
@@ -9804,6 +10856,580 @@ typedef $$BudgetsTableProcessedTableManager =
       Budget,
       PrefetchHooks Function({bool categoryId})
     >;
+typedef $$FixedBillsTableCreateCompanionBuilder = FixedBillsCompanion Function({
+  required String id,
+  required DateTime createdAt,
+  required DateTime updatedAt,
+  Value<DateTime?> deletedAt,
+  Value<bool> isDirty,
+  required String name,
+  required int amount,
+  required int dueDay,
+  Value<String?> walletId,
+  Value<String?> categoryId,
+  Value<bool> countInBudget,
+  Value<bool> isActive,
+  Value<DateTime?> paidForMonth,
+  Value<String?> lastTransactionId,
+  Value<int> rowid,
+});
+typedef $$FixedBillsTableUpdateCompanionBuilder = FixedBillsCompanion Function({
+  Value<String> id,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<DateTime?> deletedAt,
+  Value<bool> isDirty,
+  Value<String> name,
+  Value<int> amount,
+  Value<int> dueDay,
+  Value<String?> walletId,
+  Value<String?> categoryId,
+  Value<bool> countInBudget,
+  Value<bool> isActive,
+  Value<DateTime?> paidForMonth,
+  Value<String?> lastTransactionId,
+  Value<int> rowid,
+});
+
+final class $$FixedBillsTableReferences
+    extends BaseReferences<_$AppDatabase, $FixedBillsTable, FixedBill> {
+  $$FixedBillsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $WalletsTable _walletIdTable(_$AppDatabase db) =>
+      db.wallets.createAlias('fixed_bills__wallet_id__wallets__id');
+
+  $$WalletsTableProcessedTableManager? get walletId {
+    final $_column = $_itemColumn<String>('wallet_id');
+    if ($_column == null) return null;
+    final manager = $$WalletsTableTableManager(
+      $_db,
+      $_db.wallets,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_walletIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $CategoriesTable _categoryIdTable(_$AppDatabase db) =>
+      db.categories.createAlias('fixed_bills__category_id__categories__id');
+
+  $$CategoriesTableProcessedTableManager? get categoryId {
+    final $_column = $_itemColumn<String>('category_id');
+    if ($_column == null) return null;
+    final manager = $$CategoriesTableTableManager(
+      $_db,
+      $_db.categories,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_categoryIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$FixedBillsTableFilterComposer
+    extends Composer<_$AppDatabase, $FixedBillsTable> {
+  $$FixedBillsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isDirty => $composableBuilder(
+    column: $table.isDirty,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get amount => $composableBuilder(
+    column: $table.amount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get dueDay => $composableBuilder(
+    column: $table.dueDay,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get countInBudget => $composableBuilder(
+    column: $table.countInBudget,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isActive => $composableBuilder(
+    column: $table.isActive,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get paidForMonth => $composableBuilder(
+    column: $table.paidForMonth,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lastTransactionId => $composableBuilder(
+    column: $table.lastTransactionId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$WalletsTableFilterComposer get walletId {
+    final $$WalletsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.walletId,
+      referencedTable: $db.wallets,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WalletsTableFilterComposer(
+            $db: $db,
+            $table: $db.wallets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$CategoriesTableFilterComposer get categoryId {
+    final $$CategoriesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.categoryId,
+      referencedTable: $db.categories,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CategoriesTableFilterComposer(
+            $db: $db,
+            $table: $db.categories,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$FixedBillsTableOrderingComposer
+    extends Composer<_$AppDatabase, $FixedBillsTable> {
+  $$FixedBillsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isDirty => $composableBuilder(
+    column: $table.isDirty,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get amount => $composableBuilder(
+    column: $table.amount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get dueDay => $composableBuilder(
+    column: $table.dueDay,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get countInBudget => $composableBuilder(
+    column: $table.countInBudget,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isActive => $composableBuilder(
+    column: $table.isActive,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get paidForMonth => $composableBuilder(
+    column: $table.paidForMonth,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lastTransactionId => $composableBuilder(
+    column: $table.lastTransactionId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$WalletsTableOrderingComposer get walletId {
+    final $$WalletsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.walletId,
+      referencedTable: $db.wallets,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WalletsTableOrderingComposer(
+            $db: $db,
+            $table: $db.wallets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$CategoriesTableOrderingComposer get categoryId {
+    final $$CategoriesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.categoryId,
+      referencedTable: $db.categories,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CategoriesTableOrderingComposer(
+            $db: $db,
+            $table: $db.categories,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$FixedBillsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $FixedBillsTable> {
+  $$FixedBillsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<bool> get isDirty =>
+      $composableBuilder(column: $table.isDirty, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<int> get amount =>
+      $composableBuilder(column: $table.amount, builder: (column) => column);
+
+  GeneratedColumn<int> get dueDay =>
+      $composableBuilder(column: $table.dueDay, builder: (column) => column);
+
+  GeneratedColumn<bool> get countInBudget => $composableBuilder(
+    column: $table.countInBudget,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get isActive =>
+      $composableBuilder(column: $table.isActive, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get paidForMonth => $composableBuilder(
+    column: $table.paidForMonth,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get lastTransactionId => $composableBuilder(
+    column: $table.lastTransactionId,
+    builder: (column) => column,
+  );
+
+  $$WalletsTableAnnotationComposer get walletId {
+    final $$WalletsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.walletId,
+      referencedTable: $db.wallets,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WalletsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.wallets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$CategoriesTableAnnotationComposer get categoryId {
+    final $$CategoriesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.categoryId,
+      referencedTable: $db.categories,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CategoriesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.categories,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$FixedBillsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $FixedBillsTable,
+          FixedBill,
+          $$FixedBillsTableFilterComposer,
+          $$FixedBillsTableOrderingComposer,
+          $$FixedBillsTableAnnotationComposer,
+          $$FixedBillsTableCreateCompanionBuilder,
+          $$FixedBillsTableUpdateCompanionBuilder,
+          (FixedBill, $$FixedBillsTableReferences),
+          FixedBill,
+          PrefetchHooks Function({bool walletId, bool categoryId})
+        > {
+  $$FixedBillsTableTableManager(_$AppDatabase db, $FixedBillsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$FixedBillsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$FixedBillsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$FixedBillsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<bool> isDirty = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<int> amount = const Value.absent(),
+                Value<int> dueDay = const Value.absent(),
+                Value<String?> walletId = const Value.absent(),
+                Value<String?> categoryId = const Value.absent(),
+                Value<bool> countInBudget = const Value.absent(),
+                Value<bool> isActive = const Value.absent(),
+                Value<DateTime?> paidForMonth = const Value.absent(),
+                Value<String?> lastTransactionId = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FixedBillsCompanion(
+                id: id,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                isDirty: isDirty,
+                name: name,
+                amount: amount,
+                dueDay: dueDay,
+                walletId: walletId,
+                categoryId: categoryId,
+                countInBudget: countInBudget,
+                isActive: isActive,
+                paidForMonth: paidForMonth,
+                lastTransactionId: lastTransactionId,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<bool> isDirty = const Value.absent(),
+                required String name,
+                required int amount,
+                required int dueDay,
+                Value<String?> walletId = const Value.absent(),
+                Value<String?> categoryId = const Value.absent(),
+                Value<bool> countInBudget = const Value.absent(),
+                Value<bool> isActive = const Value.absent(),
+                Value<DateTime?> paidForMonth = const Value.absent(),
+                Value<String?> lastTransactionId = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FixedBillsCompanion.insert(
+                id: id,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                isDirty: isDirty,
+                name: name,
+                amount: amount,
+                dueDay: dueDay,
+                walletId: walletId,
+                categoryId: categoryId,
+                countInBudget: countInBudget,
+                isActive: isActive,
+                paidForMonth: paidForMonth,
+                lastTransactionId: lastTransactionId,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$FixedBillsTable, FixedBill>(table),
+                  $$FixedBillsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({walletId = false, categoryId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (walletId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.walletId,
+                        referencedTable: $$FixedBillsTableReferences
+                            ._walletIdTable(db),
+                        referencedColumn: $$FixedBillsTableReferences
+                            ._walletIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+                    if (categoryId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.categoryId,
+                        referencedTable: $$FixedBillsTableReferences
+                            ._categoryIdTable(db),
+                        referencedColumn: $$FixedBillsTableReferences
+                            ._categoryIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$FixedBillsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $FixedBillsTable,
+      FixedBill,
+      $$FixedBillsTableFilterComposer,
+      $$FixedBillsTableOrderingComposer,
+      $$FixedBillsTableAnnotationComposer,
+      $$FixedBillsTableCreateCompanionBuilder,
+      $$FixedBillsTableUpdateCompanionBuilder,
+      (FixedBill, $$FixedBillsTableReferences),
+      FixedBill,
+      PrefetchHooks Function({bool walletId, bool categoryId})
+    >;
 typedef $$SyncStatesTableCreateCompanionBuilder = SyncStatesCompanion Function({
   required String entity,
   Value<DateTime?> lastPulledAt,
@@ -9973,6 +11599,8 @@ class $AppDatabaseManager {
       $$PaymentsTableTableManager(_db, _db.payments);
   $$BudgetsTableTableManager get budgets =>
       $$BudgetsTableTableManager(_db, _db.budgets);
+  $$FixedBillsTableTableManager get fixedBills =>
+      $$FixedBillsTableTableManager(_db, _db.fixedBills);
   $$SyncStatesTableTableManager get syncStates =>
       $$SyncStatesTableTableManager(_db, _db.syncStates);
 }
